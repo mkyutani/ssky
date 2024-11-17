@@ -11,13 +11,15 @@ def ssky_post_parser(subparsers):
     parser.add_argument('message', nargs='?', type=str, help='The message to post')
     parser.add_argument('--dry', action='store_true', help='Dry run')
 
-def get_card(uris):
+def get_card(links):
     title = None
     description = None
 
     headers = { 'Cache-Control': 'no-cache', 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/94.0.4606.61 Safari/537.36' }
 
-    for uri in uris:
+    for key in links:
+        uri = links[key]['uri']
+
         res = None
         try:
             res = requests.get(uri, headers=headers)
@@ -75,6 +77,43 @@ def get_card(uris):
 
     return None
 
+def byte_len(text):
+    return len(text.encode('UTF-8'))
+
+def get_links(message):
+    links = {}
+
+    matches =  re.finditer(r'https?://[\w/:%#\$&\?\(\)~\.=\+\-]+', message)
+    for m in matches:
+        byte_start = byte_len(message[:m.start()])
+        byte_end = byte_start + byte_len(m.group())
+        links[f'{m.start():05d}'] = {
+            'byte_start': byte_start,
+            'byte_end': byte_end,
+            'start': m.start(),
+            'end': m.end(),
+            'uri': m.group()
+        }
+
+    return links
+
+def get_tags(message):
+    tags = {}
+
+    matches = re.finditer(r'#\S+', message)
+    for m in matches:
+        byte_start = byte_len(message[:m.start()])
+        byte_end = byte_start + byte_len(m.group())
+        tags[f'{m.start():05d}'] = {
+            'byte_start': byte_start,
+            'byte_end': byte_end,
+            'start': m.start(),
+            'end': m.end(),
+            'name': m.group()
+        }
+
+    return tags
+
 def ssky_post(args):
     env = Environment()
 
@@ -85,18 +124,38 @@ def ssky_post(args):
 
     message = message.strip()
 
-    uris = re.findall(r'https?://[\w/:%#\$&\?\(\)~\.=\+\-]+', message)
-    card = get_card(uris)
+    tags = get_tags(message)
+    links = get_links(message)
+    card = get_card(links)
 
     if args.dry:
         print(message)
-        print('- card.title:', card['title'])
-        print('- card.description:', card['description'])
-        print('- card.uri:', card['uri'])
+        for key in tags:
+            print(f'- tag {tags[key]["name"]}')
+        for key in links:
+            print(f'- link {links[key]["uri"]}')
+        if card is not None:
+            print(f'- card {card["uri"]} {card["title"]} {card["description"]}')
     else:
         try:
             client = Client()
             client.login(env.username(), env.password())
+
+            facets = []
+            for key in tags:
+                facets.append(
+                    models.AppBskyRichtextFacet.Main(
+                        features=[models.AppBskyRichtextFacet.Tag(tag=tags[key]['name'][1:])],
+                        index=models.AppBskyRichtextFacet.ByteSlice(byte_start=tags[key]['byte_start'], byte_end=tags[key]['byte_end'])
+                    )
+                )
+            for key in links:
+                facets.append(
+                    models.AppBskyRichtextFacet.Main(
+                        features=[models.AppBskyRichtextFacet.Link(uri=links[key]['uri'])],
+                        index=models.AppBskyRichtextFacet.ByteSlice(byte_start=links[key]['byte_start'], byte_end=links[key]['byte_end'])
+                    )
+                )
 
             if card is None:
                 embed_external = None
@@ -109,7 +168,7 @@ def ssky_post(args):
                     )
                 )
 
-            res = client.send_post(text=message, embed=embed_external)
+            res = client.send_post(text=message, facets=facets, embed=embed_external)
             print(f'{res.uri} {res.cid}')
         except atproto_client.exceptions.UnauthorizedError as e:
             print(f'{e.response.status_code} {e.response.content.message}', file=sys.stderr)
