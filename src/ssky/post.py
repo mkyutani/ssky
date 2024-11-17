@@ -9,8 +9,9 @@ from ssky.env import Environment
 def ssky_post_parser(subparsers):
     parser = subparsers.add_parser('post', help='Post a message to the timeline')
     parser.add_argument('message', nargs='?', type=str, help='The message to post')
+    parser.add_argument('--dry', action='store_true', help='Dry run')
 
-def get_title_and_description(uris):
+def get_card(uris):
     title = None
     description = None
 
@@ -52,7 +53,7 @@ def get_title_and_description(uris):
             print('Empty content', file=sys.stderr)
             continue
 
-        soup = BeautifulSoup(res.text, 'html.parser')
+        soup = BeautifulSoup(res.content, 'html.parser')
 
         result = soup.find('title')
         if result is None:
@@ -74,41 +75,50 @@ def get_title_and_description(uris):
 
     return None
 
-def create_embed_external(message):
-    uris = re.findall(r'https?://[\w/:%#\$&\?\(\)~\.=\+\-]+', message)
-    content = get_title_and_description(uris)
-    if content is None:
-        return None
-
-    embed_external = models.AppBskyEmbedExternal.Main(
-        external = models.AppBskyEmbedExternal.External(
-            title = content['title'],
-            description = content['description'],
-            uri = content['uri']
-        )
-    )
-
-    return embed_external
-
 def ssky_post(args):
     env = Environment()
-
-    client = Client()
-    client.login(env.username(), env.password())
 
     if args.message:
         message = args.message
     else:
         message = sys.stdin.read()
 
-    embed_external = create_embed_external(message)
+    message = message.strip()
 
-    try:
-        res = client.send_post(text=message, embed=embed_external)
-    except atproto_client.exceptions.BadRequestError as e:
-        print(f'{e.response.status_code} {e.response.content.message}', file=sys.stderr)
-        return 1
+    uris = re.findall(r'https?://[\w/:%#\$&\?\(\)~\.=\+\-]+', message)
+    card = get_card(uris)
 
-    print(f'{res.uri} {res.cid}')
+    if args.dry:
+        print(message)
+        print('- card.title:', card['title'])
+        print('- card.description:', card['description'])
+        print('- card.uri:', card['uri'])
+    else:
+        try:
+            client = Client()
+            client.login(env.username(), env.password())
+
+            if card is None:
+                embed_external = None
+            else:
+                embed_external = models.AppBskyEmbedExternal.Main(
+                    external = models.AppBskyEmbedExternal.External(
+                        title = card['title'],
+                        description = card['description'],
+                        uri = card['uri']
+                    )
+                )
+
+            res = client.send_post(text=message, embed=embed_external)
+            print(f'{res.uri} {res.cid}')
+        except atproto_client.exceptions.UnauthorizedError as e:
+            print(f'{e.response.status_code} {e.response.content.message}', file=sys.stderr)
+            return 1
+        except atproto_client.exceptions.BadRequestError as e:
+            print(f'{e.response.status_code} {e.response.content.message}', file=sys.stderr)
+            return 1
+        except Exception as e:
+            print(str(e), file=sys.stderr)
+            return 1
 
     return 0
