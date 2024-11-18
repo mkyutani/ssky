@@ -57,17 +57,23 @@ def get_card(links):
 
         soup = BeautifulSoup(res.content, 'html.parser')
 
+        title = 'No title'
         result = soup.find('title')
-        if result is None:
-            title = 'No title'
-        else:
+        if result is not None:
             title = result.text
-
-        result = soup.find('meta', attrs={'name': 'description'})
-        if result is None:
-            description = uri
         else:
+            result = soup.find('meta', attrs={'property': 'og:title'})
+            if result is not None:
+                title = result.get('content')
+
+        description = uri
+        result = soup.find('meta', attrs={'name': 'description'})
+        if result is not None:
             description = result.get('content')
+        else:
+            result = soup.find('meta', attrs={'property': 'og:description'})
+            if result is not None:
+                description = result.get('content')
 
         return {
             'title': title,
