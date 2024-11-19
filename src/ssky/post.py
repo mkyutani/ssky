@@ -9,6 +9,7 @@ from ssky.env import Environment
 def ssky_post_parser(subparsers):
     parser = subparsers.add_parser('post', help='Post a message to the timeline')
     parser.add_argument('message', nargs='?', type=str, help='The message to post')
+    parser.add_argument('--image', nargs='+', type=str, help='Image files to attach')
     parser.add_argument('--dry', action='store_true', help='Dry run')
 
 def get_card(links):
@@ -155,6 +156,13 @@ def get_tags(message):
 
     return tags
 
+def load_images(paths):
+    images = []
+    for path in paths:
+        with open(path, 'rb') as f:
+            images.append(f.read())
+    return images
+
 def ssky_post(args):
     env = Environment()
 
@@ -167,7 +175,11 @@ def ssky_post(args):
 
     tags = get_tags(message)
     links = get_links(message)
-    card = get_card(links)
+
+    if args.image is not None:
+        card = None
+    else:
+        card = get_card(links)
 
     if args.dry:
         print(message)
@@ -177,6 +189,8 @@ def ssky_post(args):
             print(f'- link {links[key]["uri"]}')
         if card is not None:
             print(f'- card {card["uri"]} {card["title"]} {card["description"]} {card["thumbnail"]}')
+        if args.image is not None:
+            print(f'- images {",".join(args.image)}')
     else:
         try:
             client = Client()
@@ -198,19 +212,17 @@ def ssky_post(args):
                     )
                 )
 
-            thumb_blob_ref = None
-            if card['thumbnail'] is not None:
-                image = get_thumbnail(card['thumbnail'])
-                if image is not None:
-                    res = client.upload_blob(image)
-                    if res.blob is None:
-                        print('ssky_post: Failed to upload thumbnail', file=sys.stderr)
-                        return 1
-                    thumb_blob_ref = res.blob
+            if card is not None:
+                thumb_blob_ref = None
+                if card['thumbnail'] is not None:
+                    image = get_thumbnail(card['thumbnail'])
+                    if image is not None:
+                        res = client.upload_blob(image)
+                        if res.blob is None:
+                            print('ssky_post: Failed to upload thumbnail', file=sys.stderr)
+                            return 1
+                        thumb_blob_ref = res.blob
 
-            if card is None:
-                embed_external = None
-            else:
                 embed_external = models.AppBskyEmbedExternal.Main(
                     external = models.AppBskyEmbedExternal.External(
                         title = card['title'],
@@ -219,8 +231,16 @@ def ssky_post(args):
                         thumb = thumb_blob_ref
                     )
                 )
+                res = client.send_post(text=message, facets=facets, embed=embed_external)
+            elif args.image is not None:
+                if len(args.image) > 4:
+                    print('ssky_post: Too many image files', file=sys.stderr)
+                    return 1
+                images = load_images(args.image)
+                res = client.send_images(text=message, facets=facets, images=images)
+            else:
+                res = client.send_post(text=message, facets=facets)
 
-            res = client.send_post(text=message, facets=facets, embed=embed_external)
             print(f'{res.uri} {res.cid}')
         except atproto_client.exceptions.UnauthorizedError as e:
             print(f'{e.response.status_code} ssky_post: {e.response.content.message}', file=sys.stderr)
