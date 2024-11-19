@@ -24,7 +24,8 @@ def get_card(links):
         try:
             res = requests.get(uri, headers=headers)
         except Exception as e:
-            print(str(e), file=sys.stderr)
+            error_message = str(e)
+            print(f'get_card: {error_message}', file=sys.stderr)
             continue
 
         if res.status_code >= 400:
@@ -33,26 +34,26 @@ def get_card(links):
             continue
 
         if not 'Content-Type' in res.headers:
-            print('No Content-Type', file=sys.stderr)
+            print('get_card: No Content-Type', file=sys.stderr)
             continue
 
         content_type_fragments = res.headers['Content-Type'].split(';')
 
         mime_type = content_type_fragments[0].strip().lower()
         if mime_type != 'text/html':
-            print(f'Unexpected mime type {mime_type}', file=sys.stderr)
+            print(f'get_card: Unexpected mime type {mime_type}', file=sys.stderr)
             continue
 
         if len(content_type_fragments) < 2:
-            print(f'Warning: No charset; assume utf-8', file=sys.stderr)
+            print(f'Warning: get_card: No charset; assume utf-8', file=sys.stderr)
         else:
             charset = content_type_fragments[1].split('=')[1].strip().lower()
             if charset != 'utf-8':
-                print(f'Unexpected charset {charset}', file=sys.stderr)
+                print(f'get_card: Unexpected charset {charset}', file=sys.stderr)
                 continue
 
         if len(res.text) == 0:
-            print('Empty content', file=sys.stderr)
+            print('get_card: Empty content', file=sys.stderr)
             continue
 
         soup = BeautifulSoup(res.content, 'html.parser')
@@ -75,9 +76,15 @@ def get_card(links):
             if result is not None:
                 description = result.get('content')
 
+        thumbnail = None
+        result = soup.find('meta', attrs={'property': 'og:image'})
+        if result is not None:
+            thumbnail = result.get('content')
+
         return {
             'title': title,
             'description': description,
+            'thumbnail': thumbnail,
             'uri': uri
         }
 
@@ -102,6 +109,34 @@ def get_links(message):
         }
 
     return links
+
+def get_thumbnail(uri):
+    headers = { 'Cache-Control': 'no-cache', 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/94.0.4606.61 Safari/537.36' }
+
+    res = None
+    try:
+        res = requests.get(uri, headers=headers)
+    except Exception as e:
+        error_message = str(e)
+        print(f'get_thumbnail: {error_message}', file=sys.stderr)
+        return None
+
+    if res.status_code >= 400:
+        error = ' '.join([str(res.status_code), res.text if res.text is not None else ''])
+        print(f'get_thumbnail: {error} ', file=sys.stderr)
+        return None
+
+    if not 'Content-Type' in res.headers:
+        print('get_thumbnail: No Content-Type', file=sys.stderr)
+        return None
+
+    content_type_fragments = res.headers['Content-Type'].split(';')
+    mime_type = content_type_fragments[0].strip().lower()
+    if mime_type != 'image/jpeg' and mime_type != 'image/png' and mime_type != 'image/gif':
+        print(f'get_thumbnail: Unexpected mime type {mime_type}', file=sys.stderr)
+        return None
+
+    return res.content
 
 def get_tags(message):
     tags = {}
@@ -141,7 +176,7 @@ def ssky_post(args):
         for key in links:
             print(f'- link {links[key]["uri"]}')
         if card is not None:
-            print(f'- card {card["uri"]} {card["title"]} {card["description"]}')
+            print(f'- card {card["uri"]} {card["title"]} {card["description"]} {card["thumbnail"]}')
     else:
         try:
             client = Client()
@@ -163,6 +198,16 @@ def ssky_post(args):
                     )
                 )
 
+            thumb_blob_ref = None
+            if card['thumbnail'] is not None:
+                image = get_thumbnail(card['thumbnail'])
+                if image is not None:
+                    res = client.upload_blob(image)
+                    if res.blob is None:
+                        print('ssky_post: Failed to upload thumbnail', file=sys.stderr)
+                        return 1
+                    thumb_blob_ref = res.blob
+
             if card is None:
                 embed_external = None
             else:
@@ -170,20 +215,22 @@ def ssky_post(args):
                     external = models.AppBskyEmbedExternal.External(
                         title = card['title'],
                         description = card['description'],
-                        uri = card['uri']
+                        uri = card['uri'],
+                        thumb = thumb_blob_ref
                     )
                 )
 
             res = client.send_post(text=message, facets=facets, embed=embed_external)
             print(f'{res.uri} {res.cid}')
         except atproto_client.exceptions.UnauthorizedError as e:
-            print(f'{e.response.status_code} {e.response.content.message}', file=sys.stderr)
+            print(f'{e.response.status_code} ssky_post: {e.response.content.message}', file=sys.stderr)
             return 1
         except atproto_client.exceptions.BadRequestError as e:
-            print(f'{e.response.status_code} {e.response.content.message}', file=sys.stderr)
+            print(f'{e.response.status_code} ssky_post: {e.response.content.message}', file=sys.stderr)
             return 1
         except Exception as e:
-            print(str(e), file=sys.stderr)
+            error_message = str(e)
+            print(f'ssky_post: {error_message}', file=sys.stderr)
             return 1
 
     return 0
