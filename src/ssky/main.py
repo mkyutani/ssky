@@ -2,13 +2,13 @@ import argparse
 import io
 import sys
 
-from ssky.post import ssky_post, ssky_post_parser
-from ssky.timeline import ssky_timeline, ssky_timeline_parser
+from ssky.post import Post
+from ssky.timeline import Timeline
 
-function_map = {
-    'post': { 'aliases': [ 'p' ], 'function': ssky_post, 'parser': ssky_post_parser },
-    'timeline': { 'aliases': [ 'tl' ], 'function': ssky_timeline, 'parser': ssky_timeline_parser }
-}
+function_map = [
+    Post(),
+    Timeline()
+]
 
 def set_io_buffers():
     sys.stdin = io.TextIOWrapper(sys.stdin.buffer, encoding='utf-8')
@@ -21,15 +21,15 @@ def main():
     parser = argparse.ArgumentParser(description='Simple Bluesky Client')
     sp = parser.add_subparsers(dest='function', title='Function', required=True)
 
-    for function in function_map.values():
-        function['parser'](sp)
+    for function in function_map:
+        function.parse(sp)
 
     args = parser.parse_args()
 
-    function = args.function
-    for function_name in function_map.keys():
-        if function == function_name:
-            return function_map[function_name]['function'](args)
+    function_name = args.function
+    for function in function_map:
+        if function_name == function.name():
+            return 0 if function.do(args) is True else 1
 
     return 0
 
