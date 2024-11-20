@@ -94,22 +94,26 @@ def get_card(links):
 def byte_len(text):
     return len(text.encode('UTF-8'))
 
-def get_links(message):
-    links = {}
-
-    matches =  re.finditer(r'https?://[\w/:%#\$&\?\(\)~\.=\+\-]+', message)
+def search_items(text, pattern, property_name):
+    matches = re.finditer(pattern, text)
+    items = {}
     for m in matches:
-        byte_start = byte_len(message[:m.start()])
+        byte_start = byte_len(text[:m.start()])
         byte_end = byte_start + byte_len(m.group())
-        links[f'{m.start():05d}'] = {
+        items[f'{m.start():05d}'] = {
             'byte_start': byte_start,
             'byte_end': byte_end,
             'start': m.start(),
             'end': m.end(),
-            'uri': m.group()
+            property_name: m.group()
         }
+    return items
 
-    return links
+def get_links(message):
+    return search_items(message, r'https?://[\w/:%#\$&\?\(\)~\.=\+\-]+', 'uri')
+
+def get_tags(message):
+    return search_items(message, r'#\S+', 'name')
 
 def get_thumbnail(uri):
     headers = { 'Cache-Control': 'no-cache', 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/94.0.4606.61 Safari/537.36' }
@@ -138,23 +142,6 @@ def get_thumbnail(uri):
         return None
 
     return res.content
-
-def get_tags(message):
-    tags = {}
-
-    matches = re.finditer(r'#\S+', message)
-    for m in matches:
-        byte_start = byte_len(message[:m.start()])
-        byte_end = byte_start + byte_len(m.group())
-        tags[f'{m.start():05d}'] = {
-            'byte_start': byte_start,
-            'byte_end': byte_end,
-            'start': m.start(),
-            'end': m.end(),
-            'name': m.group()
-        }
-
-    return tags
 
 def load_images(paths):
     images = []
