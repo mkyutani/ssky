@@ -1,6 +1,6 @@
 import re
 import sys
-from atproto import Client, models
+from atproto import Client, IdResolver, models
 import atproto_client
 from bs4 import BeautifulSoup
 import requests
@@ -115,6 +115,15 @@ def get_links(message):
 def get_tags(message):
     return search_items(message, r'#\S+', 'name')
 
+def get_mentions(message):
+    mentions = search_items(message, r'@[\w.]+', 'handle')
+    for key in mentions:
+        name = mentions[key]['handle'][1:]
+        resolver = IdResolver()
+        did = resolver.handle.resolve(name)
+        mentions[key]['did'] = did
+    return mentions
+
 def get_thumbnail(uri):
     headers = { 'Cache-Control': 'no-cache', 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/94.0.4606.61 Safari/537.36' }
 
@@ -162,6 +171,7 @@ def ssky_post(args):
 
     tags = get_tags(message)
     links = get_links(message)
+    mentions = get_mentions(message)
 
     if args.image is not None:
         card = None
@@ -174,6 +184,8 @@ def ssky_post(args):
             print(f'- tag {tags[key]["name"]}')
         for key in links:
             print(f'- link {links[key]["uri"]}')
+        for key in mentions:
+            print(f'- mention {mentions[key]["did"]} {mentions[key]["handle"]}')
         if card is not None:
             print(f'- card {card["uri"]} {card["title"]} {card["description"]} {card["thumbnail"]}')
         if args.image is not None:
@@ -196,6 +208,14 @@ def ssky_post(args):
                     models.AppBskyRichtextFacet.Main(
                         features=[models.AppBskyRichtextFacet.Link(uri=links[key]['uri'])],
                         index=models.AppBskyRichtextFacet.ByteSlice(byte_start=links[key]['byte_start'], byte_end=links[key]['byte_end'])
+                    )
+                )
+
+            for key in mentions:
+                facets.append(
+                    models.AppBskyRichtextFacet.Main(
+                        features=[models.AppBskyRichtextFacet.Mention(did=mentions[key]['did'])],
+                        index=models.AppBskyRichtextFacet.ByteSlice(byte_start=mentions[key]['byte_start'], byte_end=mentions[key]['byte_end'])
                     )
                 )
 
