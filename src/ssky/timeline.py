@@ -19,10 +19,10 @@ class Timeline:
         format_group.add_argument('--user', nargs=1, type=str, help='Specify the handle or display name to show')
         format_group.add_argument('--text', nargs=1, type=str, help='Specify the text to show')
 
-    def summarize(self, source, length):
+    def summarize(self, source, length_max):
         summary = re.sub(r'\s', '_', ''.join(list(map(lambda c: c if c > ' ' else ' ', source))))
-        if len(summary) > length:
-            summary = ''.join(summary[:length - 2]) + '..'
+        if len(summary) > length_max:
+            summary = ''.join(summary[:length_max - 2]) + '..'
         return summary
 
     def timeline(self, args):
