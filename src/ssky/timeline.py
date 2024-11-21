@@ -1,6 +1,4 @@
-import pprint
 import re
-import yaml
 from atproto import Client
 from ssky.env import Environment
 
