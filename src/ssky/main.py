@@ -4,10 +4,12 @@ import sys
 
 from ssky.post import Post
 from ssky.timeline import Timeline
+from ssky.user import User
 
 function_map = [
     Post(),
-    Timeline()
+    Timeline(),
+    User()
 ]
 
 def set_io_buffers():
