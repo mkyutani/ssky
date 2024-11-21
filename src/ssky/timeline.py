@@ -3,6 +3,7 @@ import sys
 from atproto import Client
 import atproto_client
 from ssky.env import Environment
+from ssky.util import summarize
 
 class Timeline:
 
@@ -18,12 +19,6 @@ class Timeline:
         format_group.add_argument('-p', '--post', nargs=1, type=str, help='Post URI or CID to show by prefix search')
         format_group.add_argument('-u', '--user', nargs=1, type=str, help='User handle or display name to show by prefix search')
         format_group.add_argument('-t', '--text', nargs=1, type=str, help='Text fragment to show by full text search')
-
-    def summarize(self, source, length_max):
-        summary = re.sub(r'\s', '_', ''.join(list(map(lambda c: c if c > ' ' else ' ', source))))
-        if len(summary) > length_max:
-            summary = ''.join(summary[:length_max - 2]) + '..'
-        return summary
 
     def timeline(self, args):
         env = Environment()
@@ -48,8 +43,8 @@ class Timeline:
                     if not feed.post.record.text.lower().find(text_lower) == 0:
                         continue
 
-                text_summary = self.summarize(feed.post.record.text, 40)
-                display_name_summary = self.summarize(feed.post.author.display_name, 20)
+                text_summary = summarize(feed.post.record.text, 40)
+                display_name_summary = summarize(feed.post.author.display_name, 20)
                 print(f'{feed.post.uri} {feed.post.cid} {feed.post.author.handle} {display_name_summary} {text_summary}')
         except atproto_client.exceptions.UnauthorizedError as e:
             print(f'{e.response.status_code} {e.response.content.message}', file=sys.stderr)

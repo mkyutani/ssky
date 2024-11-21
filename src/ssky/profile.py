@@ -2,6 +2,7 @@ import sys
 from atproto import Client
 import atproto_client
 from ssky.env import Environment
+from ssky.util import summarize
 
 class Profile:
 
@@ -25,8 +26,11 @@ class Profile:
             profile = client.get_profile(args.name[0])
             did = profile.did
             handle = profile.handle
+            display_name = profile.display_name
+            avatar = profile.avatar
+            banner = profile.banner
 
-            print(f'{did} {handle}')
+            print(f'{did} {handle} {summarize(display_name)} {avatar} {banner}')
         except atproto_client.exceptions.UnauthorizedError as e:
             print(f'{e.response.status_code} {e.response.content.message}', file=sys.stderr)
             return False
