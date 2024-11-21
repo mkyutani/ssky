@@ -15,9 +15,9 @@ class Timeline:
     def parse(self, subparsers) -> None:
         parser = subparsers.add_parser('timeline', help='Show the timeline')
         format_group = parser.add_mutually_exclusive_group()
-        format_group.add_argument('--post', nargs=1, type=str, help='Specify the URI or CID to show')
-        format_group.add_argument('--user', nargs=1, type=str, help='Specify the handle or display name to show')
-        format_group.add_argument('--text', nargs=1, type=str, help='Specify the text to show')
+        format_group.add_argument('-p', '--post', nargs=1, type=str, help='Post URI or CID to show by prefix search')
+        format_group.add_argument('-u', '--user', nargs=1, type=str, help='User handle or display name to show by prefix search')
+        format_group.add_argument('-t', '--text', nargs=1, type=str, help='Text fragment to show by full text search')
 
     def summarize(self, source, length_max):
         summary = re.sub(r'\s', '_', ''.join(list(map(lambda c: c if c > ' ' else ' ', source))))
