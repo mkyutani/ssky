@@ -3,13 +3,15 @@ import io
 import sys
 
 from ssky.post import Post
+from ssky.get import Get
 from ssky.timeline import Timeline
 from ssky.profile import Profile
 
 function_map = [
     Post(),
-    Timeline(),
-    Profile()
+    Profile(),
+    Get(),
+    Timeline()
 ]
 
 def set_io_buffers():
