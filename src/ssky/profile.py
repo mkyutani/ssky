@@ -24,10 +24,8 @@ class Profile:
             did = profile.did
             handle = profile.handle
             display_name = profile.display_name
-            avatar = profile.avatar
-            banner = profile.banner
 
-            print(f'{did} {handle} {summarize(display_name)} {avatar} {banner}')
+            print(f'{did} {handle} {summarize(display_name)}')
         except atproto_client.exceptions.UnauthorizedError as e:
             print(f'{e.response.status_code} {e.response.content.message}', file=sys.stderr)
             return False
