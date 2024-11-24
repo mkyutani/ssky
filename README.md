@@ -1,4 +1,4 @@
-# ssky - Simple Bluesky Client
+# ssky - Small Bluesky Client
 
 ## Introduction
 
