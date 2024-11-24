@@ -11,11 +11,8 @@ class Post:
     def name(self) -> str:
         return 'post'
 
-    def do(self, args) -> bool:
-        return self.post(args)
-
     def parse(self, subparsers) -> None:
-        parser = subparsers.add_parser('post', help='Post a message to the timeline')
+        parser = subparsers.add_parser(self.name(), help='Post a message to the timeline')
         parser.add_argument('message', nargs='?', type=str, help='The message to post')
         parser.add_argument('--image', nargs='+', type=str, help='Image files to attach')
         parser.add_argument('--dry', action='store_true', help='Dry run')
@@ -167,7 +164,7 @@ class Post:
                 images.append(f.read())
         return images
 
-    def post(self, args):
+    def do(self, args) -> bool:
         env = Environment()
 
         if args.message:

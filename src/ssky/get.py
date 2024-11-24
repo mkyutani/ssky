@@ -9,15 +9,12 @@ class Get:
     def name(self) -> str:
         return 'get'
 
-    def do(self, args) -> bool:
-        return self.get(args)
-
     def parse(self, subparsers) -> None:
-        parser = subparsers.add_parser('get', help='Get posts')
+        parser = subparsers.add_parser(self.name(), help='Get posts')
         parser.add_argument('slug', type=str, help='URI slug (or slug with user handle or display name as USER:SLUG)')
         parser.add_argument('-c', '--cid', nargs=1, type=str, help='CID of the version')
 
-    def get(self, args):
+    def do(self, args) -> bool:
         env = Environment()
 
         try:

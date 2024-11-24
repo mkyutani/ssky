@@ -9,14 +9,11 @@ class Profile:
     def name(self) -> str:
         return 'profile'
 
-    def do(self, args) -> bool:
-        return self.profile(args)
-
     def parse(self, subparsers) -> None:
-        parser = subparsers.add_parser('profile', help='Show profile')
+        parser = subparsers.add_parser(self.name(), help='Show profile')
         parser.add_argument('name', nargs=1, type=str, help='Handle or DID to show')
 
-    def profile(self, args):
+    def do(self, args) -> bool:
         env = Environment()
 
         try:

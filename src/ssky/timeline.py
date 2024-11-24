@@ -10,17 +10,14 @@ class Timeline:
     def name(self) -> str:
         return 'timeline'
 
-    def do(self, args) -> bool:
-        return self.timeline(args)
-
     def parse(self, subparsers) -> None:
-        parser = subparsers.add_parser('timeline', help='Show the timeline')
+        parser = subparsers.add_parser(self.name(), help='Show the timeline')
         format_group = parser.add_mutually_exclusive_group()
         format_group.add_argument('-p', '--post', nargs=1, type=str, help='Post URI or CID to show by prefix search')
         format_group.add_argument('-u', '--user', nargs=1, type=str, help='User handle or display name to show by prefix search')
         format_group.add_argument('-t', '--text', nargs=1, type=str, help='Text fragment to show by full text search')
 
-    def timeline(self, args):
+    def do(self, args) -> bool:
         env = Environment()
 
         try:
