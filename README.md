@@ -41,7 +41,7 @@ ssky timeline
 
 ### Post
 
-Post subcommand send a post. The message to post is given by command line argument or the standard input.  Tags, link cards and mentions are avaiable but reply-to mechanism is not implemented yet.  Optional argument --image specifies the local image file path to send with the message.  Optional flag --dry make the command not to send a post but only to print the message.
+Post subcommand send a post. The message to post is given by command line argument or the standard input.  Tags, link cards and mentions are available but reply-to mechanism is not implemented yet.  Optional argument --image specifies the local image file path to send with the message.  Optional flag --dry make the command not to send a post but only to print the message.
 
 ```sh
 ssky post Hello
