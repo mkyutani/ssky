@@ -27,7 +27,7 @@ class Timeline:
             client = Client()
             client.login(env.username(), env.password())
 
-            res = client.get_timeline()
+            res = client.get_timeline(limit=100)
 
             for feed in res.feed:
                 if args.post:
