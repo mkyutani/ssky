@@ -26,15 +26,8 @@ class Profile:
             display_name = profile.display_name
 
             print(f'{did} {handle} {summarize(display_name)}')
-        except atproto_client.exceptions.UnauthorizedError as e:
+        except atproto_client.exceptions.RequestErrorBase as e:
             print(f'{e.response.status_code} {e.response.content.message}', file=sys.stderr)
-            return False
-        except atproto_client.exceptions.BadRequestError as e:
-            print(f'{e.response.status_code} {e.response.content.message}', file=sys.stderr)
-            return False
-        except Exception as e:
-            error_message = str(e)
-            print(f'{error_message}', file=sys.stderr)
             return False
 
         return True
