@@ -1,5 +1,6 @@
 import argparse
 import io
+import os
 import sys
 
 from ssky.post import Post
@@ -28,12 +29,17 @@ def main():
 
     args = parser.parse_args()
 
-    function_name = args.function
-    for function in function_map:
-        if function_name == function.name():
-            return 0 if function.do(args) is True else 1
+    try:
+        function_name = args.function
+        for function in function_map:
+            if function_name == function.name():
+                return 0 if function.do(args) is True else 1
+    except BrokenPipeError:
+        devnull = os.open(os.devnull, os.O_WRONLY)
+        os.dup2(devnull, sys.stdout.fileno())
+        sys.exit(1)
 
     return 0
 
 if __name__ == '__main__':
-    exit(main())
+    sys.exit(main())
