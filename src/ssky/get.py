@@ -12,6 +12,7 @@ class Get:
     def parse(self, subparsers) -> None:
         parser = subparsers.add_parser(self.name(), help='Get posts')
         parser.add_argument('param', nargs='?', type=str, help='URI(at://...), slug(HANDLE:SLUG[:CID]), DID(did:...), handle, or timeline')
+        parser.add_argument('-D', '--delimiter', type=str, default=' ', help='Delimiter')
 
     class PostData:
         def __init__(self, uri: str, cid: str, author_did: str, author_handle: str, author_display_name: str, text: str):
@@ -110,6 +111,6 @@ class Get:
             for post in posts:
                 display_name_summary = summarize(post.author_display_name)
                 text_summary = summarize(post.text, 40)
-                print(f'{post.uri} {post.cid} {post.author_did} {post.author_handle} {display_name_summary} {text_summary}')
+                print(args.delimiter.join([post.uri, post.cid, post.author_did, post.author_handle, display_name_summary, text_summary]))
 
         return True

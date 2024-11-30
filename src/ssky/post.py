@@ -16,6 +16,7 @@ class Post:
         parser.add_argument('message', nargs='?', type=str, help='The message to post')
         parser.add_argument('--image', nargs='+', type=str, help='Image files to attach')
         parser.add_argument('--dry', action='store_true', help='Dry run')
+        parser.add_argument('-D', '--delimiter', type=str, default=' ', help='Delimiter')
 
     def get_card(self, links):
         title = None
@@ -186,15 +187,15 @@ class Post:
         if args.dry:
             print(message)
             for key in tags:
-                print(f'- tag {tags[key]["name"]}')
+                print(args.delimiter.join(['Tag', tags[key]["name"]]))
             for key in links:
-                print(f'- link {links[key]["uri"]}')
+                print(args.delimiter.join(['Link', links[key]["uri"]]))
             for key in mentions:
-                print(f'- mention {mentions[key]["did"]} {mentions[key]["handle"]}')
+                print(args.delimiter.join(['Mention', mentions[key]["did"], mentions[key]["handle"]]))
             if card is not None:
-                print(f'- card {card["uri"]} {card["title"]} {card["description"]} {card["thumbnail"]}')
+                print(args.delimiter.join(['Card', card["uri"], card["title"], card["description"], card["thumbnail"]]))
             if args.image is not None:
-                print(f'- images {",".join(args.image)}')
+                print(args.delimiter.join(['Images', ','.join(args.image)]))
         else:
             try:
                 client = Client()
@@ -253,7 +254,7 @@ class Post:
                 else:
                     res = client.send_post(text=message, facets=facets)
 
-                print(f'{res.uri} {res.cid}')
+                print(args.delimiter.join([res.uri, res.cid]))
             except atproto_client.exceptions.RequestErrorBase as e:
                 print(f'{e.response.status_code} ssky_post: {e.response.content.message}', file=sys.stderr)
                 return False
