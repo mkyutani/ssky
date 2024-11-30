@@ -2,6 +2,7 @@ import sys
 from atproto import Client
 import atproto_client
 from ssky.env import Environment
+from ssky.login import Login
 from ssky.util import summarize
 
 class Get:
@@ -23,20 +24,10 @@ class Get:
             self.author_display_name = author_display_name
             self.text = text
 
-    def init(self) -> bool:
-        env = Environment()
-
-        try:
-            self.client = Client()
-            self.profile = self.client.login(env.username(), env.password())
-            return True
-        except atproto_client.exceptions.UnauthorizedError as e:
-            print(f'{e.response.status_code} {e.response.content.message}', file=sys.stderr)
-            return False
-        except Exception as e:
-            error_message = str(e)
-            print(f'{error_message}', file=sys.stderr)
-            return False
+    def init(self):
+        login = Login()
+        self.client = login.client()
+        self.profile = login.profile()
 
     def get_post(self, slug, user, cid) -> list:
         try:

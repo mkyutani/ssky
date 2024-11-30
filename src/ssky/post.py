@@ -1,10 +1,10 @@
 import re
 import sys
-from atproto import Client, IdResolver, models
+from atproto import IdResolver, models
 import atproto_client
 from bs4 import BeautifulSoup
 import requests
-from ssky.env import Environment
+from ssky.login import Login
 
 class Post:
 
@@ -166,8 +166,6 @@ class Post:
         return images
 
     def do(self, args) -> bool:
-        env = Environment()
-
         if args.message:
             message = args.message
         else:
@@ -198,9 +196,6 @@ class Post:
                 print(args.delimiter.join(['Images', ','.join(args.image)]))
         else:
             try:
-                client = Client()
-                client.login(env.username(), env.password())
-
                 facets = []
                 for key in tags:
                     facets.append(
@@ -224,6 +219,9 @@ class Post:
                             index=models.AppBskyRichtextFacet.ByteSlice(byte_start=mentions[key]['byte_start'], byte_end=mentions[key]['byte_end'])
                         )
                     )
+
+                login = Login()
+                client = login.client()
 
                 if card is not None:
                     thumb_blob_ref = None

@@ -1,7 +1,6 @@
 import sys
-from atproto import Client
 import atproto_client
-from ssky.env import Environment
+from ssky.login import Login
 from ssky.util import summarize
 
 class Profile:
@@ -15,11 +14,9 @@ class Profile:
         parser.add_argument('-D', '--delimiter', type=str, default=' ', help='Delimiter')
 
     def do(self, args) -> bool:
-        env = Environment()
-
         try:
-            client = Client()
-            client.login(env.username(), env.password())
+            login = Login()
+            client = login.client()
 
             profile = client.get_profile(args.name[0])
             did = profile.did
