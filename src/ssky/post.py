@@ -254,15 +254,8 @@ class Post:
                     res = client.send_post(text=message, facets=facets)
 
                 print(f'{res.uri} {res.cid}')
-            except atproto_client.exceptions.UnauthorizedError as e:
+            except atproto_client.exceptions.RequestErrorBase as e:
                 print(f'{e.response.status_code} ssky_post: {e.response.content.message}', file=sys.stderr)
-                return False
-            except atproto_client.exceptions.BadRequestError as e:
-                print(f'{e.response.status_code} ssky_post: {e.response.content.message}', file=sys.stderr)
-                return False
-            except Exception as e:
-                error_message = str(e)
-                print(f'ssky_post: {error_message}', file=sys.stderr)
                 return False
 
         return True
