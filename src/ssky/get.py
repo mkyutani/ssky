@@ -21,19 +21,28 @@ class Get:
             client = Client()
             profile = client.login(env.username(), env.password())
 
-            if args.slug.count(':') > 1:
-                print('Invalid slug. (SLUG or USER:SLUG).', file=sys.stderr)
-                return False
-
-            if args.slug.count(':') == 1:
+            if args.slug.startswith('at://'):
+                if args.slug.count('/') != 4:
+                    raise ValueError('Invalid URI format')
+                slug_elements = args.slug.split('/')
+                user = slug_elements[2]
+                slug = slug_elements[4]
+            elif args.slug.startswith('did:plc:'):
+                slug_elements = args.slug.split(':')
+                user = ':'.join(slug_elements[:3])
+                slug = slug_elements[3]
+            elif args.slug.count(':') == 1:
                 slug_elements = args.slug.split(':')
                 user = slug_elements[0]
                 slug = slug_elements[1]
-                target_profile = client.get_profile(user)
             else:
                 user = None
                 slug = args.slug
+
+            if user is None:
                 target_profile = profile
+            else:
+                target_profile = client.get_profile(user)
             cid = args.cid[0] if args.cid else None
 
             res = client.get_post(slug, profile_identify=user, cid=cid)
