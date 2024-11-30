@@ -1,6 +1,4 @@
-import sys
 from atproto import Client
-import atproto_client
 from ssky.env import Environment
 
 class Login:
