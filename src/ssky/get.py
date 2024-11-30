@@ -11,7 +11,7 @@ class Get:
 
     def parse(self, subparsers) -> None:
         parser = subparsers.add_parser(self.name(), help='Get posts')
-        parser.add_argument('param', nargs='?', type=str, help='URI(at://...), slug((DID|handle):SLUG:[CID]), DID(did:plc:...), handle, or timeline')
+        parser.add_argument('param', nargs='?', type=str, help='URI(at://...), slug(HANDLE:SLUG[:CID]), DID(did:...), handle, or timeline')
 
     class PostData:
         def __init__(self, uri: str, cid: str, author_did: str, author_handle: str, author_display_name: str, text: str):
@@ -90,14 +90,13 @@ class Get:
             posts = self.get_timeline()
         elif args.param.startswith('at://'):
             posts = self.get_posts([args.param])
-        elif args.param.startswith('did:plc:'):
+        elif args.param.startswith('did:'):
             posts = self.get_author_feed(args.param)
         elif args.param.count(':') > 0:
             param_elements = args.param.split(':')
             if len(param_elements) < 2 or len(param_elements) > 3:
                 print(f'Invalid post format (USER:SLUG[:CID])', file=sys.stderr)
                 return False
-
             user = param_elements[0]
             slug = param_elements[1]
             cid = param_elements[2] if len(param_elements) == 3 else None
