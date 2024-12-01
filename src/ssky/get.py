@@ -1,7 +1,5 @@
 import sys
-from atproto import Client
 import atproto_client
-from ssky.env import Environment
 from ssky.login import Login
 from ssky.util import summarize
 
@@ -12,8 +10,9 @@ class Get:
 
     def parse(self, subparsers) -> None:
         parser = subparsers.add_parser(self.name(), help='Get posts')
-        parser.add_argument('param', nargs='?', type=str, help='URI(at://...), slug(HANDLE:SLUG[:CID]), DID(did:...), handle, or timeline')
+        parser.add_argument('param', nargs='?', type=str, help='URI(at://...), slug(HANDLE:SLUG[:CID]), DID(did:...), handle, "myself", or timeline')
         parser.add_argument('-D', '--delimiter', type=str, default=' ', help='Delimiter')
+        parser.add_argument('-l', '--limit', type=int, default=100, help='Limit lines (<= 100; default: 100)')
 
     class PostData:
         def __init__(self, uri: str, cid: str, author_did: str, author_handle: str, author_display_name: str, text: str):
@@ -23,11 +22,6 @@ class Get:
             self.author_handle = author_handle
             self.author_display_name = author_display_name
             self.text = text
-
-    def init(self):
-        login = Login()
-        self.client = login.client()
-        self.profile = login.profile()
 
     def get_post(self, slug, user, cid) -> list:
         try:
@@ -53,9 +47,9 @@ class Get:
             print(f'{e.response.status_code} {e.response.content.message}', file=sys.stderr)
             return None
 
-    def get_author_feed(self, user) -> list:
+    def get_author_feed(self, user, limit=100) -> list:
         try:
-            res = self.client.get_author_feed(user, limit=100)
+            res = self.client.get_author_feed(user, limit=limit)
             post_data = []
             for feed in res.feed:
                 post_data.append(self.PostData(feed.post.uri, feed.post.cid, feed.post.author.did, feed.post.author.handle, feed.post.author.display_name, feed.post.record.text))
@@ -64,9 +58,9 @@ class Get:
             print(f'{e.response.status_code} {e.response.content.message}', file=sys.stderr)
             return None
 
-    def get_timeline(self) -> list:
+    def get_timeline(self, limit=100) -> list:
         try:
-            res = self.client.get_timeline(limit=100)
+            res = self.client.get_timeline(limit=limit)
             post_data = []
             for feed in res.feed:
                 post_data.append(self.PostData(feed.post.uri, feed.post.cid, feed.post.author.did, feed.post.author.handle, feed.post.author.display_name, feed.post.record.text))
@@ -76,14 +70,17 @@ class Get:
             return None
 
     def do(self, args) -> bool:
-        self.init()
+        login = Login()
+        self.client = login.client()
+        self.profile = login.profile()
+        self.handle = login.handle()
 
         if args.param is None:
-            posts = self.get_timeline()
+            posts = self.get_timeline(limit=args.limit)
         elif args.param.startswith('at://'):
             posts = self.get_posts([args.param])
         elif args.param.startswith('did:'):
-            posts = self.get_author_feed(args.param)
+            posts = self.get_author_feed(args.para, limit=args.limit)
         elif args.param.count(':') > 0:
             param_elements = args.param.split(':')
             if len(param_elements) < 2 or len(param_elements) > 3:
@@ -94,7 +91,11 @@ class Get:
             cid = param_elements[2] if len(param_elements) == 3 else None
             posts = self.get_post(slug, user, cid)
         else:
-            posts = self.get_author_feed(args.param)
+            if args.param == 'myself':
+                actor = self.handle
+            else:
+                actor = args.param
+            posts = self.get_author_feed(actor, limit=args.limit)
 
         if posts is None:
             return False

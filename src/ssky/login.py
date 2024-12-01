@@ -20,9 +20,13 @@ class Login:
         return cls.session
 
     def client(self):
-        session = self.init()
-        return self.session.client
+        return Login.init().client
 
     def profile(self):
-        session = self.init()
-        return self.session.profile
+        return Login.init().profile
+
+    def did(self):
+        return Login.init().profile.did
+
+    def handle(self):
+        return Login.init().profile.handle
