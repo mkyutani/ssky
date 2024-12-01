@@ -14,9 +14,10 @@ class Post:
     def parse(self, subparsers) -> None:
         parser = subparsers.add_parser(self.name(), help='Post a message to the timeline')
         parser.add_argument('message', nargs='?', type=str, help='The message to post')
-        parser.add_argument('--image', nargs='+', type=str, help='Image files to attach')
-        parser.add_argument('--dry', action='store_true', help='Dry run')
         parser.add_argument('-D', '--delimiter', type=str, default=' ', help='Delimiter')
+        parser.add_argument('--dry', action='store_true', help='Dry run')
+        parser.add_argument('-i', '--id', action='store_true', help='Show IDs (URIs) only')
+        parser.add_argument('--image', nargs='+', type=str, help='Image files to attach')
 
     def get_card(self, links):
         title = None
@@ -252,7 +253,10 @@ class Post:
                 else:
                     res = client.send_post(text=message, facets=facets)
 
-                print(args.delimiter.join([res.uri, res.cid]))
+                if args.id:
+                    print(res.uri)
+                else:
+                    print(args.delimiter.join([res.uri, res.cid]))
             except atproto_client.exceptions.RequestErrorBase as e:
                 print(f'{e.response.status_code} ssky_post: {e.response.content.message}', file=sys.stderr)
                 return False

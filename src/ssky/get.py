@@ -12,6 +12,7 @@ class Get:
         parser = subparsers.add_parser(self.name(), help='Get posts')
         parser.add_argument('param', nargs='?', type=str, help='URI(at://...), slug(HANDLE:SLUG[:CID]), DID(did:...), handle, "myself", or timeline')
         parser.add_argument('-D', '--delimiter', type=str, default=' ', help='Delimiter')
+        parser.add_argument('-i', '--id', action='store_true', help='Show IDs (URIs) only')
         parser.add_argument('-l', '--limit', type=int, default=100, help='Limit lines (<= 100; default: 100)')
 
     class PostData:
@@ -101,8 +102,11 @@ class Get:
             return False
         else:
             for post in posts:
-                display_name_summary = summarize(post.author_display_name)
-                text_summary = summarize(post.text, 40)
-                print(args.delimiter.join([post.uri, post.cid, post.author_did, post.author_handle, display_name_summary, text_summary]))
+                if args.id:
+                    print(post.uri)
+                else:
+                    display_name_summary = summarize(post.author_display_name)
+                    text_summary = summarize(post.text, 40)
+                    print(args.delimiter.join([post.uri, post.cid, post.author_did, post.author_handle, display_name_summary, text_summary]))
 
         return True
