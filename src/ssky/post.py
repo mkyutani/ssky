@@ -192,18 +192,6 @@ class Post:
         else:
             card = self.get_card(links)
 
-        client = Login().client()
-
-        reply_to = None
-        if args.reply_to:
-            post_to_reply_to = self.get_post(args.reply_to)
-            if post_to_reply_to is None:
-                return False
-            reply_to = models.app.bsky.feed.post.ReplyRef(
-                parent=models.create_strong_ref(post_to_reply_to),
-                root=models.create_strong_ref(post_to_reply_to)
-            )
-
         if args.dry:
             print(message)
             for key in tags:
@@ -242,6 +230,18 @@ class Post:
                             features=[models.AppBskyRichtextFacet.Mention(did=mentions[key]['did'])],
                             index=models.AppBskyRichtextFacet.ByteSlice(byte_start=mentions[key]['byte_start'], byte_end=mentions[key]['byte_end'])
                         )
+                    )
+
+                client = Login().client()
+
+                reply_to = None
+                if args.reply_to:
+                    post_to_reply_to = self.get_post(args.reply_to)
+                    if post_to_reply_to is None:
+                        return False
+                    reply_to = models.app.bsky.feed.post.ReplyRef(
+                        parent=models.create_strong_ref(post_to_reply_to),
+                        root=models.create_strong_ref(post_to_reply_to)
                     )
 
                 if card is not None:
