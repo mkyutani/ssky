@@ -18,6 +18,7 @@ class Post:
         parser.add_argument('--dry', action='store_true', help='Dry run')
         parser.add_argument('-i', '--id', action='store_true', help='Show IDs (URIs) only')
         parser.add_argument('--image', nargs='+', type=str, help='Image files to attach')
+        parser.add_argument('--reply-to', type=str, metavar='URI', help='Reply to a post')
 
     def get_card(self, links):
         title = None
@@ -166,6 +167,14 @@ class Post:
                 images.append(f.read())
         return images
 
+    def get_post(self, uri):
+        try:
+            res = Login().client().get_posts([uri])
+            return res.posts[0]
+        except atproto_client.exceptions.RequestErrorBase as e:
+            print(f'{e.response.status_code} {e.response.content.message}', file=sys.stderr)
+            return None
+
     def do(self, args) -> bool:
         if args.message:
             message = args.message
@@ -183,6 +192,18 @@ class Post:
         else:
             card = self.get_card(links)
 
+        client = Login().client()
+
+        reply_to = None
+        if args.reply_to:
+            post_to_reply_to = self.get_post(args.reply_to)
+            if post_to_reply_to is None:
+                return False
+            reply_to = models.app.bsky.feed.post.ReplyRef(
+                parent=models.create_strong_ref(post_to_reply_to),
+                root=models.create_strong_ref(post_to_reply_to)
+            )
+
         if args.dry:
             print(message)
             for key in tags:
@@ -195,6 +216,8 @@ class Post:
                 print(args.delimiter.join(['Card', card["uri"], card["title"], card["description"], card["thumbnail"]]))
             if args.image is not None:
                 print(args.delimiter.join(['Images', ','.join(args.image)]))
+            if reply_to:
+                print(args.delimiter.join(['Reply to', args.reply_to]))
         else:
             try:
                 facets = []
@@ -221,9 +244,6 @@ class Post:
                         )
                     )
 
-                login = Login()
-                client = login.client()
-
                 if card is not None:
                     thumb_blob_ref = None
                     if card['thumbnail'] is not None:
@@ -243,7 +263,7 @@ class Post:
                             thumb = thumb_blob_ref
                         )
                     )
-                    res = client.send_post(text=message, facets=facets, embed=embed_external)
+                    res = client.send_post(text=message, facets=facets, embed=embed_external, reply_to=reply_to)
                 elif args.image is not None:
                     if len(args.image) > 4:
                         print('ssky_post: Too many image files', file=sys.stderr)
