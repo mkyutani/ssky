@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "ssky"
 version = "0.1.0"
-description = ""
+description = "Simple bluesky client"
 authors = ["Miki Yutani <mkyutani@gmail.com>"]
 readme = "README.md"
 license = "LICENSE"
