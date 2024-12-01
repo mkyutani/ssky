@@ -1,7 +1,7 @@
 import sys
 import atproto_client
 from ssky.login import Login
-from ssky.util import summarize
+from ssky.util import expand_actor, summarize
 
 class Get:
 
@@ -10,7 +10,7 @@ class Get:
 
     def parse(self, subparsers) -> None:
         parser = subparsers.add_parser(self.name(), help='Get posts')
-        parser.add_argument('param', nargs='?', type=str, help='URI(at://...), slug(HANDLE:SLUG[:CID]), DID(did:...), handle, "myself", or timeline')
+        parser.add_argument('param', nargs='?', type=str, help='URI(at://...), slug(HANDLE:SLUG[:CID]), DID(did:...), handle, or timeline')
         parser.add_argument('-D', '--delimiter', type=str, default=' ', help='Delimiter')
         parser.add_argument('-I', '--id', action='store_true', help='Show IDs (URIs) only')
         parser.add_argument('-L', '--limit', type=int, default=100, help='Limit lines (<= 100; default: 100)')
@@ -81,7 +81,7 @@ class Get:
         elif args.param.startswith('at://'):
             posts = self.get_posts([args.param])
         elif args.param.startswith('did:'):
-            posts = self.get_author_feed(args.para, limit=args.limit)
+            posts = self.get_author_feed(args.param, limit=args.limit)
         elif args.param.count(':') > 0:
             param_elements = args.param.split(':')
             if len(param_elements) < 2 or len(param_elements) > 3:
@@ -92,10 +92,7 @@ class Get:
             cid = param_elements[2] if len(param_elements) == 3 else None
             posts = self.get_post(slug, user, cid)
         else:
-            if args.param == 'myself':
-                actor = self.handle
-            else:
-                actor = args.param
+            actor = expand_actor(args.param)
             posts = self.get_author_feed(actor, limit=args.limit)
 
         if posts is None:

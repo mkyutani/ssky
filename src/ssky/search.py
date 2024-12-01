@@ -2,7 +2,7 @@ import sys
 from atproto import models
 import atproto_client
 from ssky.login import Login
-from ssky.util import summarize
+from ssky.util import expand_actor, summarize
 
 class Search:
 
@@ -24,7 +24,7 @@ class Search:
 
             res = client.app.bsky.feed.search_posts(
                 models.app.bsky.feed.search_posts.Params(
-                    author=args.author,
+                    author=expand_actor(args.author),
                     limit=args.limit,
                     q=args.q
                 )
