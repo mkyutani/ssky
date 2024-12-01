@@ -105,4 +105,4 @@ ssky post Reply! --reply-to $(ssky get myself --limit 1 --id)
 
 ## Author
 
-[Miki Yutani](mkyutnai@gmail.com)
+[Miki Yutani](https://github.com/mkyutani)
