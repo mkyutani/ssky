@@ -52,9 +52,9 @@ Post subcommand send a post. The message to post is given by command line argume
 ```sh
 ssky post Hello # Post from command line text
 echo Hello | ssky post # Post from /dev/stdin
-ssky 'Hello, #bluesky @atproto.com https://bsky.app/' # Post with tags, mentions, and embed link card
-ssky 'Hello, bluesky!' --image hello.png hello2.png # Post with images
-ssky 'Hello, bluesky!' --reply-to at://... # Reply to the post specified by URI
+ssky post 'Hello, #bluesky @atproto.com https://bsky.app/' # Post with tags, mentions, and embed link card
+ssky post 'Hello, bluesky!' --image hello.png hello2.png # Post with images
+ssky post 'Hello, bluesky!' --reply-to at://... # Reply to the post specified by URI
 
 ssky post Hello --dry # Dry run
 ```
