@@ -29,7 +29,7 @@ SSKY_USERNAME=user.bsky.social SSKY_PASSWORD=xxxx-xxxxx-xxxx-xxxx ssky ...
 
 ## Quick Start
 
-Command line interfaces are formatted by `ssky subcommand [options]`, while subcommand is one of timeline, post, profile, etc. and options depends on the the subcommand without some common ones.
+Command line interfaces are formatted by `ssky subcommand [options]`, while subcommand is one of `get`, `post`, `profile`, and `search`. and options depends on the the subcommand without some common ones.
 
 ### Common options
 
