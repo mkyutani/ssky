@@ -12,8 +12,8 @@ class Get:
         parser = subparsers.add_parser(self.name(), help='Get posts')
         parser.add_argument('param', nargs='?', type=str, help='URI(at://...), slug(HANDLE:SLUG[:CID]), DID(did:...), handle, "myself", or timeline')
         parser.add_argument('-D', '--delimiter', type=str, default=' ', help='Delimiter')
-        parser.add_argument('-i', '--id', action='store_true', help='Show IDs (URIs) only')
-        parser.add_argument('-l', '--limit', type=int, default=100, help='Limit lines (<= 100; default: 100)')
+        parser.add_argument('-I', '--id', action='store_true', help='Show IDs (URIs) only')
+        parser.add_argument('-L', '--limit', type=int, default=100, help='Limit lines (<= 100; default: 100)')
 
     class PostData:
         def __init__(self, uri: str, cid: str, author_did: str, author_handle: str, author_display_name: str, text: str):

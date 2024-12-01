@@ -12,7 +12,7 @@ class Profile:
         parser = subparsers.add_parser(self.name(), help='Show profile')
         parser.add_argument('name', nargs=1, type=str, help='Handle or DID to show')
         parser.add_argument('-D', '--delimiter', type=str, default=' ', help='Delimiter')
-        parser.add_argument('-i', '--id', action='store_true', help='Show ID (DID) only')
+        parser.add_argument('-I', '--id', action='store_true', help='Show ID (DID) only')
 
     def do(self, args) -> bool:
         try:

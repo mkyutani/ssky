@@ -15,10 +15,10 @@ class Post:
         parser = subparsers.add_parser(self.name(), help='Post a message to the timeline')
         parser.add_argument('message', nargs='?', type=str, help='The message to post')
         parser.add_argument('-D', '--delimiter', type=str, default=' ', help='Delimiter')
-        parser.add_argument('--dry', action='store_true', help='Dry run')
-        parser.add_argument('-i', '--id', action='store_true', help='Show IDs (URIs) only')
-        parser.add_argument('--image', nargs='+', type=str, help='Image files to attach')
-        parser.add_argument('--reply-to', type=str, metavar='URI', help='Reply to a post')
+        parser.add_argument('-d', '--dry', action='store_true', help='Dry run')
+        parser.add_argument('-I', '--id', action='store_true', help='Show IDs (URIs) only')
+        parser.add_argument('-i', '--image', nargs='+', type=str, help='Image files to attach')
+        parser.add_argument('-r', '--reply-to', type=str, metavar='URI', help='Reply to a post')
 
     def get_card(self, links):
         title = None

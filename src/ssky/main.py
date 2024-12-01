@@ -3,14 +3,16 @@ import io
 import os
 import sys
 
-from ssky.post import Post
 from ssky.get import Get
+from ssky.post import Post
 from ssky.profile import Profile
+from ssky.search import Search
 
 function_map = [
+    Get(),
     Post(),
     Profile(),
-    Get()
+    Search()
 ]
 
 def set_io_buffers():
