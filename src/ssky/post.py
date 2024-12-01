@@ -269,9 +269,9 @@ class Post:
                         print('ssky_post: Too many image files', file=sys.stderr)
                         return False
                     images = self.load_images(args.image)
-                    res = client.send_images(text=message, facets=facets, images=images)
+                    res = client.send_images(text=message, facets=facets, images=images, reply_to=reply_to)
                 else:
-                    res = client.send_post(text=message, facets=facets)
+                    res = client.send_post(text=message, facets=facets, reply_to=reply_to)
 
                 if args.id:
                     print(res.uri)
