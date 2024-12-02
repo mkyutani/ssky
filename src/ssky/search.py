@@ -1,3 +1,4 @@
+import re
 import sys
 from atproto import models
 import atproto_client
@@ -16,17 +17,41 @@ class Search:
         parser.add_argument('-a', '--author', type=str, help='Author handle or DID')
         parser.add_argument('-I', '--id', action='store_true', help='Show ID (DID) only')
         parser.add_argument('-L', '--limit', type=int, default=100, help='Limit lines (<= 100; default: 100)')
+        parser.add_argument('-s', '--since', type=str, help='Since timestamp (ex. 2001-01-01T00:00:00Z, 20010101000000, 20010101)')
+        parser.add_argument('-u', '--until', type=str, help='Until timestamp (ex. 2099-12-31T23:59:59Z, 20991231235959, 20991231)')
 
     def do(self, args) -> bool:
         try:
             login = Login()
             client = login.client()
 
+            if args.since:
+                if re.match(r'^\d{14}$', args.since):
+                    since = f'{args.since[:4]}-{args.since[4:6]}-{args.since[6:8]}T{args.since[8:10]}:{args.since[10:12]}:{args.since[10:12]}Z'
+                elif re.match(r'^\d{8}$', args.since):
+                    since = f'{args.since[:4]}-{args.since[4:6]}-{args.since[6:8]}T00:00:00Z'
+                else:
+                    since = args.since
+            else:
+                since = None
+
+            if args.until:
+                if re.match(r'^\d{14}$', args.until):
+                    until = f'{args.until[:4]}-{args.until[4:6]}-{args.until[6:8]}T{args.until[8:10]}:{args.until[10:12]}:{args.until[10:12]}Z'
+                elif re.match(r'^\d{8}$', args.until):
+                    until = f'{args.until[:4]}-{args.until[4:6]}-{args.until[6:8]}T23:59:59Z'
+                else:
+                    until = args.until
+            else:
+                until = None
+
             res = client.app.bsky.feed.search_posts(
                 models.app.bsky.feed.search_posts.Params(
                     author=expand_actor(args.author),
                     limit=args.limit,
-                    q=args.q
+                    q=args.q,
+                    since=since,
+                    until=until
                 )
             )
 
