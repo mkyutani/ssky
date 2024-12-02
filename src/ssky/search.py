@@ -12,13 +12,13 @@ class Search:
 
     def parse(self, subparsers) -> None:
         parser = subparsers.add_parser(self.name(), help='Search posts')
-        parser.add_argument('q', type=str, help='Query string')
-        parser.add_argument('-D', '--delimiter', type=str, default=' ', help='Delimiter')
-        parser.add_argument('-a', '--author', type=str, help='Author handle or DID')
-        parser.add_argument('-I', '--id', action='store_true', help='Show ID (DID) only')
-        parser.add_argument('-L', '--limit', type=int, default=100, help='Limit lines (<= 100; default: 100)')
-        parser.add_argument('-s', '--since', type=str, help='Since timestamp (ex. 2001-01-01T00:00:00Z, 20010101000000, 20010101)')
-        parser.add_argument('-u', '--until', type=str, help='Until timestamp (ex. 2099-12-31T23:59:59Z, 20991231235959, 20991231)')
+        parser.add_argument('q', type=str, metavar='QUERY', help='Query string')
+        parser.add_argument('-D', '--delimiter', type=str, default=' ', metavar='STRING', help='Delimiter')
+        parser.add_argument('-a', '--author', type=str, metavar='ACTOR', help='Author handle or DID')
+        parser.add_argument('-I', '--id', action='store_true', help='Print ID (DID) only')
+        parser.add_argument('-L', '--limit', type=int, default=100, metavar='NUM', help='Limit lines (<=100)')
+        parser.add_argument('-s', '--since', type=str, metavar='TIMESTAMP', help='Since timestamp (ex. 2001-01-01T00:00:00Z, 20010101000000, 20010101)')
+        parser.add_argument('-u', '--until', type=str, metavar='TIMESTAMP', help='Until timestamp (ex. 2099-12-31T23:59:59Z, 20991231235959, 20991231)')
 
     def do(self, args) -> bool:
         try:
