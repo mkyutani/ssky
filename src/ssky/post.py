@@ -34,7 +34,7 @@ class Post:
                 res = requests.get(uri, headers=headers)
             except Exception as e:
                 error_message = str(e)
-                print(f'get_card: {error_message}', file=sys.stderr)
+                print(f'{error_message}', file=sys.stderr)
                 continue
 
             if res.status_code >= 400:
@@ -43,14 +43,14 @@ class Post:
                 continue
 
             if not 'Content-Type' in res.headers:
-                print('get_card: No Content-Type', file=sys.stderr)
+                print('No Content-Type', file=sys.stderr)
                 continue
 
             content_type_fragments = res.headers['Content-Type'].split(';')
 
             mime_type = content_type_fragments[0].strip().lower()
             if mime_type != 'text/html':
-                print(f'get_card: Unexpected mime type {mime_type}', file=sys.stderr)
+                print(f'Unexpected mime type {mime_type}', file=sys.stderr)
                 continue
 
             if len(content_type_fragments) < 2:
@@ -58,11 +58,11 @@ class Post:
             else:
                 charset = content_type_fragments[1].split('=')[1].strip().lower()
                 if charset != 'utf-8':
-                    print(f'get_card: Unexpected charset {charset}', file=sys.stderr)
+                    print(f'Unexpected charset {charset}', file=sys.stderr)
                     continue
 
             if len(res.text) == 0:
-                print('get_card: Empty content', file=sys.stderr)
+                print('Empty content', file=sys.stderr)
                 continue
 
             soup = BeautifulSoup(res.content, 'html.parser')
@@ -140,22 +140,22 @@ class Post:
             res = requests.get(uri, headers=headers)
         except Exception as e:
             error_message = str(e)
-            print(f'get_thumbnail: {error_message}', file=sys.stderr)
+            print(f'{error_message}', file=sys.stderr)
             return None
 
         if res.status_code >= 400:
             error = ' '.join([str(res.status_code), res.text if res.text is not None else ''])
-            print(f'get_thumbnail: {error} ', file=sys.stderr)
+            print(f'{error} ', file=sys.stderr)
             return None
 
         if not 'Content-Type' in res.headers:
-            print('get_thumbnail: No Content-Type', file=sys.stderr)
+            print('No Content-Type', file=sys.stderr)
             return None
 
         content_type_fragments = res.headers['Content-Type'].split(';')
         mime_type = content_type_fragments[0].strip().lower()
         if mime_type != 'image/jpeg' and mime_type != 'image/png' and mime_type != 'image/gif':
-            print(f'get_thumbnail: Unexpected mime type {mime_type}', file=sys.stderr)
+            print(f'Unexpected mime type {mime_type}', file=sys.stderr)
             return None
 
         return res.content
@@ -204,7 +204,7 @@ class Post:
                 print(args.delimiter.join(['Card', card["uri"], card["title"], card["description"], card["thumbnail"]]))
             if args.image is not None:
                 print(args.delimiter.join(['Images', ','.join(args.image)]))
-            if reply_to:
+            if args.reply_to:
                 print(args.delimiter.join(['Reply to', args.reply_to]))
         else:
             try:
@@ -251,7 +251,7 @@ class Post:
                         if image is not None:
                             res = client.upload_blob(image)
                             if res.blob is None:
-                                print('ssky_post: Failed to upload thumbnail', file=sys.stderr)
+                                print('Failed to upload thumbnail', file=sys.stderr)
                                 return False
                             thumb_blob_ref = res.blob
 
@@ -266,7 +266,7 @@ class Post:
                     res = client.send_post(text=message, facets=facets, embed=embed_external, reply_to=reply_to)
                 elif args.image is not None:
                     if len(args.image) > 4:
-                        print('ssky_post: Too many image files', file=sys.stderr)
+                        print('Too many image files', file=sys.stderr)
                         return False
                     images = self.load_images(args.image)
                     res = client.send_images(text=message, facets=facets, images=images, reply_to=reply_to)
@@ -278,7 +278,7 @@ class Post:
                 else:
                     print(args.delimiter.join([res.uri, res.cid]))
             except atproto_client.exceptions.RequestErrorBase as e:
-                print(f'{e.response.status_code} ssky_post: {e.response.content.message}', file=sys.stderr)
+                print(f'{e.response.status_code} {e.response.content.message}', file=sys.stderr)
                 return False
 
         return True
