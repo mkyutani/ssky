@@ -13,7 +13,6 @@ class Repost:
         parser.add_argument('param', nargs='?', type=str, metavar='PARAM', help='URI(at://...)[::CID]')
         parser.add_argument('-D', '--delimiter', type=str, default=' ', metavar='STRING', help='Delimiter')
         parser.add_argument('-I', '--id', action='store_true', help='Print IDs (URI::CID) only')
-        parser.add_argument('-L', '--limit', type=int, default=100, metavar='NUM', help='Limit lines (<=100)')
 
     def get_post(self, uris) -> list:
         try:
