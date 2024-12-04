@@ -3,18 +3,22 @@ import io
 import os
 import sys
 
+from ssky.delete import Delete
 from ssky.get import Get
 from ssky.post import Post
 from ssky.profile import Profile
 from ssky.repost import Repost
 from ssky.search import Search
+from ssky.unrepost import Unrepost
 
 function_map = [
+    Delete(),
     Get(),
     Post(),
     Profile(),
     Repost(),
-    Search()
+    Search(),
+    Unrepost()
 ]
 
 def set_io_buffers():
