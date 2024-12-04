@@ -5,6 +5,7 @@ import atproto_client
 from bs4 import BeautifulSoup
 import requests
 from ssky.login import Login
+from ssky.util import join_uri_cid, summarize
 
 class Post:
 
@@ -16,7 +17,7 @@ class Post:
         parser.add_argument('message', nargs='?', type=str, help='The message to post')
         parser.add_argument('-D', '--delimiter', type=str, default=' ', metavar='STRING', help='Delimiter')
         parser.add_argument('-d', '--dry', action='store_true', help='Dry run')
-        parser.add_argument('-I', '--id', action='store_true', help='Print IDs (URIs) only')
+        parser.add_argument('-I', '--id', action='store_true', help='Print IDs (URI::CID) only')
         parser.add_argument('-i', '--image', nargs='+', type=str, metavar='PATH', help='Image files to attach')
         parser.add_argument('-r', '--reply-to', type=str, metavar='URI', help='Reply to a post')
 
@@ -273,10 +274,14 @@ class Post:
                 else:
                     res = client.send_post(text=message, facets=facets, reply_to=reply_to)
 
-                if args.id:
-                    print(res.uri)
-                else:
-                    print(args.delimiter.join([res.uri, res.cid]))
+                posts = self.get_posts([res.uri])
+                for post in posts:
+                    if args.id:
+                        print(join_uri_cid(post.uri, post.cid))
+                    else:
+                        display_name_summary = summarize(post.author_display_name)
+                        text_summary = summarize(post.text, 40)
+                        print(args.delimiter.join([join_uri_cid(post.uri, post.cid), post.author_did, post.author_handle, display_name_summary, text_summary]))
             except atproto_client.exceptions.RequestErrorBase as e:
                 print(f'{e.response.status_code} {e.response.content.message}', file=sys.stderr)
                 return False

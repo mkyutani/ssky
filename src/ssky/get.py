@@ -1,7 +1,7 @@
 import sys
 import atproto_client
 from ssky.login import Login
-from ssky.util import expand_actor, summarize
+from ssky.util import disjoin_uri_cid, expand_actor, is_joined_uri_cid, join_uri_cid, summarize
 
 class Get:
 
@@ -12,7 +12,7 @@ class Get:
         parser = subparsers.add_parser(self.name(), help='Get posts')
         parser.add_argument('param', nargs='?', type=str, metavar='PARAM', help='URI(at://...), slug(HANDLE:SLUG[:CID]), DID(did:...), handle, or timeline')
         parser.add_argument('-D', '--delimiter', type=str, default=' ', metavar='STRING', help='Delimiter')
-        parser.add_argument('-I', '--id', action='store_true', help='Print IDs (URIs) only')
+        parser.add_argument('-I', '--id', action='store_true', help='Print IDs (URI::CID) only')
         parser.add_argument('-L', '--limit', type=int, default=100, metavar='NUM', help='Limit lines (<=100)')
 
     class PostData:
@@ -79,17 +79,30 @@ class Get:
         if args.param is None:
             posts = self.get_timeline(limit=args.limit)
         elif args.param.startswith('at://'):
-            posts = self.get_posts([args.param])
+            if is_joined_uri_cid(args.param):
+                uri, cid = disjoin_uri_cid(args.param)
+            else:
+                uri = args.param
+                cid = None
+            returned_posts = self.get_posts([uri])
+            posts = []
+            for returned_post in returned_posts:
+                if returned_post.uri == uri and (cid is None or returned_post.cid == cid):
+                    posts.append(returned_post)
         elif args.param.startswith('did:'):
             posts = self.get_author_feed(args.param, limit=args.limit)
         elif args.param.count(':') > 0:
-            param_elements = args.param.split(':')
-            if len(param_elements) < 2 or len(param_elements) > 3:
-                print(f'Invalid post format (USER:SLUG[:CID])', file=sys.stderr)
+            if is_joined_uri_cid(args.param):
+                uri, cid = disjoin_uri_cid(args.param)
+            else:
+                uri = args.param
+                cid = None
+            param_elements = uri.split(':')
+            if len(param_elements) < 1 or len(param_elements) > 2:
+                print(f'Invalid post format (USER:SLUG[::CID])', file=sys.stderr)
                 return False
-            user = param_elements[0]
+            user = expand_actor(param_elements[0])
             slug = param_elements[1]
-            cid = param_elements[2] if len(param_elements) == 3 else None
             posts = self.get_post(slug, user, cid)
         else:
             actor = expand_actor(args.param)
@@ -100,10 +113,10 @@ class Get:
         else:
             for post in posts:
                 if args.id:
-                    print(post.uri)
+                    print(join_uri_cid(post.uri, post.cid))
                 else:
                     display_name_summary = summarize(post.author_display_name)
                     text_summary = summarize(post.text, 40)
-                    print(args.delimiter.join([post.uri, post.cid, post.author_did, post.author_handle, display_name_summary, text_summary]))
+                    print(args.delimiter.join([join_uri_cid(post.uri, post.cid), post.author_did, post.author_handle, display_name_summary, text_summary]))
 
         return True

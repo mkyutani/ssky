@@ -14,3 +14,13 @@ def expand_actor(name: str) -> str:
     else:
         actor = name
     return actor
+
+def join_uri_cid(uri, cid) -> str:
+    return '::'.join([uri, cid])
+
+def disjoin_uri_cid(uri_cid) -> tuple:
+    pair = uri_cid.split('::', 1)
+    return pair[0], pair[1]
+
+def is_joined_uri_cid(uri_cid) -> bool:
+    return '::' in uri_cid
