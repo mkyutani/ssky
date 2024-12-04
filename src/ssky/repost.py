@@ -14,17 +14,6 @@ class Repost:
         parser.add_argument('-D', '--delimiter', type=str, default=' ', metavar='STRING', help='Delimiter')
         parser.add_argument('-I', '--id', action='store_true', help='Print IDs (URI::CID) only')
 
-    def get_post(self, uris) -> list:
-        try:
-            res = self.client.get_posts(uris)
-            post_data = []
-            for post in res.posts:
-                post_data.append(self.PostData(post.uri, post.cid, post.author.did, post.author.handle, post.author.display_name, post.record.text))
-            return post_data
-        except atproto_client.exceptions.RequestErrorBase as e:
-            print(f'{e.response.status_code} {e.response.content.message}', file=sys.stderr)
-            return None
-
     def do(self, args) -> bool:
         client = Login().client()
 
