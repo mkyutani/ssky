@@ -6,12 +6,14 @@ import sys
 from ssky.get import Get
 from ssky.post import Post
 from ssky.profile import Profile
+from ssky.repost import Repost
 from ssky.search import Search
 
 function_map = [
     Get(),
     Post(),
     Profile(),
+    Repost(),
     Search()
 ]
 
