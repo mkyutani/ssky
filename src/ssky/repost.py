@@ -10,7 +10,7 @@ class Repost:
 
     def parse(self, subparsers) -> None:
         parser = subparsers.add_parser(self.name(), help='Repost')
-        parser.add_argument('param', nargs='?', type=str, metavar='PARAM', help='URI(at://...)[::CID]')
+        parser.add_argument('param', type=str, help='URI(at://...)[::CID]')
         parser.add_argument('-D', '--delimiter', type=str, default=' ', metavar='STRING', help='Delimiter')
         parser.add_argument('-I', '--id', action='store_true', help='Print IDs (URI::CID) only')
 
