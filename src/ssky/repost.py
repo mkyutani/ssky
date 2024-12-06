@@ -1,7 +1,8 @@
 import sys
 import atproto_client
 from ssky.login import Login
-from ssky.util import disjoin_uri_cid, expand_actor, is_joined_uri_cid, join_uri_cid, summarize
+from ssky.post_data import PostData
+from ssky.util import disjoin_uri_cid, is_joined_uri_cid
 
 class Repost:
 
@@ -15,6 +16,8 @@ class Repost:
         parser.add_argument('-I', '--id', action='store_true', help='Print IDs (URI::CID) only')
 
     def do(self, args) -> bool:
+        PostData.set_delimiter(args.delimiter)
+
         client = Login().client()
 
         if is_joined_uri_cid(args.param):
@@ -32,18 +35,18 @@ class Repost:
         if repost is None:
             return False
         else:
-            if args.id:
-                print(join_uri_cid(repost.uri, repost.cid))
-            else:
-                try:
-                    sources = client.get_posts([source_uri])
-                    for source_post in sources.posts:
-                        if source_post.uri == source_uri and (source_cid is None or source_post.cid == source_cid):
-                            display_name_summary = summarize(source_post.author.display_name)
-                            text_summary = summarize(source_post.record.text, 40)
-                            print(args.delimiter.join([join_uri_cid(repost.uri, repost.cid), source_post.author.did, source_post.author.handle, display_name_summary, text_summary]))
-                except atproto_client.exceptions.RequestErrorBase as e:
-                    print(f'{e.response.status_code} {e.response.content.message}', file=sys.stderr)
-                    return None
+            try:
+                sources = client.get_posts([source_uri])
+                for source_post in sources.posts:
+                    if source_post.uri == source_uri and (source_cid is None or source_post.cid == source_cid):
+                        post_data = PostData().set(source_post)
+                        post_data.set_items({'uri': repost.uri, 'cid': repost.cid})
+                        if args.id:
+                            print(post_data.get_uri_cid())
+                        else:
+                            print(post_data)
+            except atproto_client.exceptions.RequestErrorBase as e:
+                print(f'{e.response.status_code} {e.response.content.message}', file=sys.stderr)
+                return None
 
         return True

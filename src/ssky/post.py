@@ -5,7 +5,8 @@ import atproto_client
 from bs4 import BeautifulSoup
 import requests
 from ssky.login import Login
-from ssky.util import join_uri_cid, summarize
+from ssky.post_data import PostData
+from ssky.util import disjoin_uri_cid, is_joined_uri_cid
 
 class Post:
 
@@ -168,15 +169,26 @@ class Post:
                 images.append(f.read())
         return images
 
-    def get_post(self, uri):
+    def get_post(self, uri_cid):
         try:
-            res = Login().client().get_posts([uri])
-            return res.posts[0]
+            if is_joined_uri_cid(uri_cid):
+                uri, cid = disjoin_uri_cid(uri_cid)
+            else:
+                uri = uri_cid
+                cid = None
+            retrieved_posts = Login().client().get_posts([uri])
+            posts = []
+            for retrieved_post in retrieved_posts.posts:
+                if retrieved_post.uri == uri and (cid is None or retrieved_post.cid == cid):
+                    posts.append(retrieved_post)
+            return posts[0]
         except atproto_client.exceptions.RequestErrorBase as e:
             print(f'{e.response.status_code} {e.response.content.message}', file=sys.stderr)
             return None
 
     def do(self, args) -> bool:
+        PostData.set_delimiter(args.delimiter)
+
         if args.message:
             message = args.message
         else:
@@ -274,14 +286,13 @@ class Post:
                 else:
                     res = client.send_post(text=message, facets=facets, reply_to=reply_to)
 
-                posts = self.get_posts([res.uri])
-                for post in posts:
+                posts = client.get_posts([res.uri])
+                for post in posts.posts:
+                    post_data = PostData().set(post)
                     if args.id:
-                        print(join_uri_cid(post.uri, post.cid))
+                        print(post_data.get_uri_cid())
                     else:
-                        display_name_summary = summarize(post.author_display_name)
-                        text_summary = summarize(post.text, 40)
-                        print(args.delimiter.join([join_uri_cid(post.uri, post.cid), post.author_did, post.author_handle, display_name_summary, text_summary]))
+                        print(post_data)
             except atproto_client.exceptions.RequestErrorBase as e:
                 print(f'{e.response.status_code} {e.response.content.message}', file=sys.stderr)
                 return False
