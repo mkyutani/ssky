@@ -33,13 +33,13 @@ Command line interfaces are formatted by `ssky subcommand [options]`, while subc
 
 ### Common options
 
-- -D, --delimiter: Delimiter string in output
-- -I, --id: Output only identifier, depending on context (ex. URI and DID)
-- -L, --limit: limit lines when multiple line output like get and search subcommands
+* -D, --delimiter: Delimiter string in output
+* -I, --id: Output only identifier, depending on context (ex. URI and DID)
+* -L, --limit: limit lines when multiple line output like get and search subcommands
 
 ### Common names
 
-- Each subcommand allows "myself" instead of the logged in user DID or handle.
+* Each subcommand allows "myself" instead of the logged in user DID or handle.
 
 ### Get posts
 
