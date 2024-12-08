@@ -19,7 +19,7 @@ class Post:
         parser.add_argument('-D', '--delimiter', type=str, default=' ', metavar='STRING', help='Delimiter')
         parser.add_argument('-d', '--dry', action='store_true', help='Dry run')
         parser.add_argument('-I', '--id', action='store_true', help='Print IDs (URI::CID) only')
-        parser.add_argument('-i', '--image', nargs='+', type=str, metavar='PATH', help='Image files to attach')
+        parser.add_argument('-i', '--image', action='append', type=str, default=[], metavar='PATH', help='Image files to attach')
         parser.add_argument('-q', '--quote', type=str, metavar='URI', help='Quote a post')
         parser.add_argument('-r', '--reply-to', type=str, metavar='URI', help='Reply to a post')
 
@@ -202,7 +202,7 @@ class Post:
         mentions = self.get_mentions(message)
 
         card = None
-        if not args.image and not args.quote:
+        if len(args.image) == 0 and not args.quote:
             card = self.get_card(links)
 
         if args.dry:
@@ -213,10 +213,10 @@ class Post:
                 print(args.delimiter.join(['Link', links[key]["uri"]]))
             for key in mentions:
                 print(args.delimiter.join(['Mention', mentions[key]["did"], mentions[key]["handle"]]))
+            for image in args.image:
+                print(args.delimiter.join(['Image', image]))
             if card is not None:
                 print(args.delimiter.join(['Card', card["uri"], card["title"], card["description"], card["thumbnail"]]))
-            if args.image is not None:
-                print(args.delimiter.join(['Images', ','.join(args.image)]))
             if args.reply_to:
                 print(args.delimiter.join(['Reply to', args.reply_to]))
         else:
