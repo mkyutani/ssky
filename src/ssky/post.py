@@ -20,6 +20,7 @@ class Post:
         parser.add_argument('-d', '--dry', action='store_true', help='Dry run')
         parser.add_argument('-I', '--id', action='store_true', help='Print IDs (URI::CID) only')
         parser.add_argument('-i', '--image', nargs='+', type=str, metavar='PATH', help='Image files to attach')
+        parser.add_argument('-q', '--quote', type=str, metavar='URI', help='Quote a post')
         parser.add_argument('-r', '--reply-to', type=str, metavar='URI', help='Reply to a post')
 
     def get_card(self, links):
@@ -200,9 +201,8 @@ class Post:
         links = self.get_links(message)
         mentions = self.get_mentions(message)
 
-        if args.image is not None:
-            card = None
-        else:
+        card = None
+        if not args.image and not args.quote:
             card = self.get_card(links)
 
         if args.dry:
@@ -277,6 +277,17 @@ class Post:
                         )
                     )
                     res = client.send_post(text=message, facets=facets, embed=embed_external, reply_to=reply_to)
+                elif args.quote is not None:
+                    source = self.get_post(args.quote)
+                    if source is None:
+                        return False
+                    embed_record = models.AppBskyEmbedRecord.Main(
+                        record = models.ComAtprotoRepoStrongRef.Main(
+                            uri = source.uri,
+                            cid = source.cid
+                        )
+                    )
+                    res = client.send_post(text=message, facets=facets, embed=embed_record, reply_to=reply_to)
                 elif args.image is not None:
                     if len(args.image) > 4:
                         print('Too many image files', file=sys.stderr)
