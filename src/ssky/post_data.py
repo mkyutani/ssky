@@ -18,13 +18,24 @@ class PostData:
         self.text = text
         self.delimiter = delimiter if delimiter is not None else self.default_delimiter
 
-    def __str__(self):
+    def __str__(self) -> str:
         uri_cid = self.get_uri_cid()
         author_did = self.author_did if self.author_did is not None else ''
         author_handle = self.author_handle if self.author_handle is not None else ''
         display_name_summary = summarize(self.author_display_name) if self.author_display_name is not None else ''
         text_summary = summarize(self.text, length_max=40) if self.text is not None else ''
         return self.delimiter.join([uri_cid, author_did, author_handle, display_name_summary, text_summary])
+
+    def long(self) -> str:
+        uri_cid = self.get_uri_cid()
+        return '\n'.join([
+            f'Record-URI: {self.uri if self.uri is not None else ""}',
+            f'Record-CID: {self.cid if self.cid is not None else ""}',
+            f'Author-DID: {self.author_did if self.author_did is not None else ""}',
+            f'Author-Handle: {self.author_handle if self.author_handle is not None else ""}',
+            f'Author-Display-Name: {self.author_display_name if self.author_display_name is not None else ""}',
+            f'',
+            self.text])
 
     def get_uri_cid(self) -> str:
         return join_uri_cid(self.uri, self.cid) if self.uri is not None or self.cid is not None else ''

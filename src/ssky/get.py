@@ -12,6 +12,7 @@ class Get:
     def parse(self, subparsers) -> None:
         parser = subparsers.add_parser(self.name(), help='Get posts')
         parser.add_argument('param', nargs='?', type=str, metavar='PARAM', help='URI(at://...), slug(HANDLE:SLUG[:CID]), DID(did:...), handle, or none as timeline')
+        parser.add_argument('-l', '--long', action='store_true', help='Long output')
         parser.add_argument('-D', '--delimiter', type=str, default=' ', metavar='STRING', help='Delimiter')
         parser.add_argument('-I', '--id', action='store_true', help='Print IDs (URI::CID) only')
         parser.add_argument('-L', '--limit', type=int, default=100, metavar='NUM', help='Limit lines (<=100)')
@@ -90,9 +91,15 @@ class Get:
             if post_data is None:
                 return False
             else:
+                continued = False
                 for post in post_data:
                     if args.id:
                         print(post.get_uri_cid())
+                    elif args.long:
+                        if continued:
+                            print('--------')
+                        print(post.long())
+                        continued = True
                     else:
                         print(post)
         except atproto_client.exceptions.RequestErrorBase as e:
