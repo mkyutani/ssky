@@ -31,15 +31,12 @@ SSKY_USERNAME=user.bsky.social SSKY_PASSWORD=xxxx-xxxxx-xxxx-xxxx ssky ...
 
 Command line interfaces are formatted by `ssky subcommand [options]`, while subcommand is one of `get`, `post`, `profile`, and `search`. and options depends on the the subcommand without some common ones.
 
-### Common options
+### Common options and names
 
-* -D, --delimiter: Delimiter string in output
-* -I, --id: Output only identifier, depending on context (ex. URI and DID)
-* -L, --limit: limit lines when multiple line output like get and search subcommands
-
-### Common names
-
-* Each subcommand allows "myself" instead of the logged in user DID or handle.
+* Common option -D, --delimiter: Delimiter string in output
+* Common option -I, --id: Output only identifier URI::CID or DID, depending on context
+* Common option -L, --limit: limit lines when multiple line output like get and search subcommands
+* Common name "myself": each subcommand allows this name instead of the logged in user DID or handle.
 
 ### Get posts
 
@@ -50,9 +47,11 @@ ssky get # Get my timeline (already described)
 ssky get handle # Get other author's feed by handle
 ssky get did:... # Get other author's feed by DID
 ssky get at://... # Get a post specified by URI
-ssky get at://...::cig # Get a post specified by URI and CIG
+ssky get at://...::CID # Get a post specified by URI and CID
 ssky get handle:slug # Get a post specified by author's handle and slug of URI
 ssky get handle:slug:cid # Get a post specified by author's handle and slug of URI with CID version
+
+ssky get at://... --long # Print in long format
 ```
 
 ### Get profile
@@ -72,9 +71,9 @@ Post subcommand sends a post. The message to post is given by command line argum
 ssky post Hello # Post from command line text
 echo Hello | ssky post # Post from /dev/stdin
 ssky post 'Hello, #bluesky @atproto.com https://bsky.app/' # Post with tags, mentions, and embed link card
-ssky post 'Hello, bluesky!' --image hello.png hello2.png # Post with images
+ssky post 'Hello, bluesky!' --image hello.png --image hello2.png # Post with images
 ssky post 'Hello, bluesky!' --reply-to at://... # Reply to the post specified by URI
-ssky post 'Hello, bluesky!' --reply-to at://...::cig # Reply to the post specified by URI (CIG is ignored)
+ssky post 'Hello, bluesky!' --reply-to at://...::CID # Reply to the post specified by URI (CID is ignored)
 
 ssky post Hello --dry # Dry run
 ```
@@ -94,7 +93,7 @@ Delete subcommand deletes a post.
 
 ```sh
 ssky delete at://... # Delete the post specified by URI
-ssky delete at://...::cig # Delete the post specified by URI (CIG is ignored)
+ssky delete at://...::CID # Delete the post specified by URI (CID is ignored)
 ```
 
 ### Repost
@@ -102,7 +101,7 @@ ssky delete at://...::cig # Delete the post specified by URI (CIG is ignored)
 Repost subcommand repost the post.
 
 ```sh
-ssky repost at://...::cig # Repost the post specified by URI and CIG
+ssky repost at://...::CID # Repost the post specified by URI and CID
 ```
 
 ### Unrepost
@@ -111,7 +110,7 @@ Repost subcommand delete the repost to a post.
 
 ```sh
 ssky unrepost at://... # Delete the repost specified by URI
-ssky unrepost at://...::cig # Delete the repost specified by URI (CIG is ignored)
+ssky unrepost at://...::CID # Delete the repost specified by URI (CID is ignored)
 ```
 
 ## Samples
