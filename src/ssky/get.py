@@ -62,7 +62,7 @@ class Get:
             return None
 
     def do(self, args) -> bool:
-        PostData.set_delimiter(args.delimiter)
+        PostData.set_default_delimiter(args.delimiter)
 
         login = Login()
         self.client = login.client()

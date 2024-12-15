@@ -188,8 +188,6 @@ class Post:
             return None
 
     def do(self, args) -> bool:
-        PostData.set_delimiter(args.delimiter)
-
         if args.message:
             message = args.message
         else:
@@ -299,7 +297,7 @@ class Post:
 
                 posts = client.get_posts([res.uri])
                 for post in posts.posts:
-                    post_data = PostData().set(post)
+                    post_data = PostData(delimiter=args.delimiter).set(post)
                     if args.id:
                         print(post_data.get_uri_cid())
                     else:

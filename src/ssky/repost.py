@@ -16,8 +16,6 @@ class Repost:
         parser.add_argument('-I', '--id', action='store_true', help='Print IDs (URI::CID) only')
 
     def do(self, args) -> bool:
-        PostData.set_delimiter(args.delimiter)
-
         client = Login().client()
 
         if is_joined_uri_cid(args.param):
@@ -39,7 +37,7 @@ class Repost:
                 sources = client.get_posts([source_uri])
                 for source_post in sources.posts:
                     if source_post.uri == source_uri and (source_cid is None or source_post.cid == source_cid):
-                        post_data = PostData().set(source_post)
+                        post_data = PostData(delimiter=args.delimiter).set(source_post)
                         post_data.set_items({'uri': repost.uri, 'cid': repost.cid})
                         if args.id:
                             print(post_data.get_uri_cid())

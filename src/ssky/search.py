@@ -22,8 +22,6 @@ class Search:
         parser.add_argument('-u', '--until', type=str, metavar='TIMESTAMP', help='Until timestamp (ex. 2099-12-31T23:59:59Z, 20991231235959, 20991231)')
 
     def do(self, args) -> bool:
-        PostData.set_delimiter(args.delimiter)
-
         try:
             login = Login()
             client = login.client()
@@ -59,7 +57,7 @@ class Search:
             )
 
             for post in res.posts:
-                post_data = PostData().set(post)
+                post_data = PostData(delimiter=args.delimiter).set(post)
                 if args.id:
                     print(post_data.get_uri_cid())
                 else:
