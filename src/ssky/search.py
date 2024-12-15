@@ -49,7 +49,7 @@ class Search:
                 until = None
 
             res = client.app.bsky.feed.search_posts(
-                models.app.bsky.feed.search_posts.Params(
+                models.AppBskyFeedSearchPosts.Params(
                     author=expand_actor(args.author),
                     limit=args.limit,
                     q=args.q,
