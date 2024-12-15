@@ -115,10 +115,17 @@ ssky unrepost at://...::CID # Delete the repost specified by URI (CID is ignored
 
 ## Samples
 
+### Save your last post
+
+```sh
+ssky post 'My very important posted message'
+ssky get myself --limit 1 --long | sed -n '/^$/,$p' | sed -e 1d > history/$(date -u +%Y%m%d%H%M%S%N%Z).txt
+```
+
 ### Reply to the last post by myself
 
 ```sh
-ssky post Reply! --reply-to $(ssky get myself --limit 1 --id)
+ssky post 'Reply!' --reply-to $(ssky get myself --limit 1 --id)
 ```
 
 ## License
