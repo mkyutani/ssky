@@ -13,19 +13,21 @@ class Unrepost:
         parser.add_argument('param', type=str, help='URI(at://...)[::CID]')
 
     def do(self, args) -> bool:
-        client = Login().client()
-
         if is_joined_uri_cid(args.param):
             uri, _ = disjoin_uri_cid(args.param)
         else:
             uri = args.param
 
         try:
+            client = Login().client()
             status = client.delete_repost(uri)
             if status is False:
                 return False
         except atproto_client.exceptions.RequestErrorBase as e:
-            print(f'{e.response.status_code} {e.response.content.message}', file=sys.stderr)
-            return None
+            if e.response:
+                print(f'{e.response.status_code} {e.response.content.message}', file=sys.stderr)
+            else:
+                print(f'{e.__class__.__name__}', file=sys.stderr)
+            return False
 
         return True

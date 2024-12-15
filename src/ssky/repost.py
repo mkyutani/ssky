@@ -16,8 +16,6 @@ class Repost:
         parser.add_argument('-I', '--id', action='store_true', help='Print IDs (URI::CID) only')
 
     def do(self, args) -> bool:
-        client = Login().client()
-
         if is_joined_uri_cid(args.param):
             source_uri, source_cid = disjoin_uri_cid(args.param)
         else:
@@ -25,26 +23,26 @@ class Repost:
             source_cid = None
 
         try:
-            repost = client.repost(source_uri, source_cid)
-        except atproto_client.exceptions.RequestErrorBase as e:
-            print(f'{e.response.status_code} {e.response.content.message}', file=sys.stderr)
-            return None
+            client = Login().client()
 
-        if repost is None:
-            return False
-        else:
-            try:
-                sources = client.get_posts([source_uri])
-                for source_post in sources.posts:
-                    if source_post.uri == source_uri and (source_cid is None or source_post.cid == source_cid):
-                        post_data = PostData(delimiter=args.delimiter).set(source_post)
-                        post_data.set_items({'uri': repost.uri, 'cid': repost.cid})
-                        if args.id:
-                            print(post_data.get_uri_cid())
-                        else:
-                            print(post_data)
-            except atproto_client.exceptions.RequestErrorBase as e:
+            repost = client.repost(source_uri, source_cid)
+            if repost is None:
+                return False
+
+            sources = client.get_posts([source_uri])
+            for source_post in sources.posts:
+                if source_post.uri == source_uri and (source_cid is None or source_post.cid == source_cid):
+                    post_data = PostData(delimiter=args.delimiter).set(source_post)
+                    post_data.set_items({'uri': repost.uri, 'cid': repost.cid})
+                    if args.id:
+                        print(post_data.get_uri_cid())
+                    else:
+                        print(post_data)
+        except atproto_client.exceptions.RequestErrorBase as e:
+            if e.response:
                 print(f'{e.response.status_code} {e.response.content.message}', file=sys.stderr)
-                return None
+            else:
+                print(f'{e.__class__.__name__}', file=sys.stderr)
+            return False
 
         return True

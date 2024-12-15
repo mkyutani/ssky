@@ -63,7 +63,10 @@ class Search:
                 else:
                     print(post_data)
         except atproto_client.exceptions.RequestErrorBase as e:
-            print(f'{e.response.status_code} {e.response.content.message}', file=sys.stderr)
+            if e.response:
+                print(f'{e.response.status_code} {e.response.content.message}', file=sys.stderr)
+            else:
+                print(f'{e.__class__.__name__}', file=sys.stderr)
             return False
 
         return True

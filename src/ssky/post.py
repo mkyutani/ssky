@@ -171,21 +171,17 @@ class Post:
         return images
 
     def get_post(self, uri_cid):
-        try:
-            if is_joined_uri_cid(uri_cid):
-                uri, cid = disjoin_uri_cid(uri_cid)
-            else:
-                uri = uri_cid
-                cid = None
-            retrieved_posts = Login().client().get_posts([uri])
-            posts = []
-            for retrieved_post in retrieved_posts.posts:
-                if retrieved_post.uri == uri and (cid is None or retrieved_post.cid == cid):
-                    posts.append(retrieved_post)
-            return posts[0]
-        except atproto_client.exceptions.RequestErrorBase as e:
-            print(f'{e.response.status_code} {e.response.content.message}', file=sys.stderr)
-            return None
+        if is_joined_uri_cid(uri_cid):
+            uri, cid = disjoin_uri_cid(uri_cid)
+        else:
+            uri = uri_cid
+            cid = None
+        retrieved_posts = Login().client().get_posts([uri])
+        posts = []
+        for retrieved_post in retrieved_posts.posts:
+            if retrieved_post.uri == uri and (cid is None or retrieved_post.cid == cid):
+                posts.append(retrieved_post)
+        return posts[0]
 
     def do(self, args) -> bool:
         if args.message:
@@ -217,93 +213,97 @@ class Post:
                 print(args.delimiter.join(['Card', card["uri"], card["title"], card["description"], card["thumbnail"]]))
             if args.reply_to:
                 print(args.delimiter.join(['Reply to', args.reply_to]))
-        else:
-            try:
-                facets = []
-                for key in tags:
-                    facets.append(
-                        models.AppBskyRichtextFacet.Main(
-                            features=[models.AppBskyRichtextFacet.Tag(tag=tags[key]['name'][1:])],
-                            index=models.AppBskyRichtextFacet.ByteSlice(byte_start=tags[key]['byte_start'], byte_end=tags[key]['byte_end'])
-                        )
-                    )
-                for key in links:
-                    facets.append(
-                        models.AppBskyRichtextFacet.Main(
-                            features=[models.AppBskyRichtextFacet.Link(uri=links[key]['uri'])],
-                            index=models.AppBskyRichtextFacet.ByteSlice(byte_start=links[key]['byte_start'], byte_end=links[key]['byte_end'])
-                        )
-                    )
+            return True
 
-                for key in mentions:
-                    facets.append(
-                        models.AppBskyRichtextFacet.Main(
-                            features=[models.AppBskyRichtextFacet.Mention(did=mentions[key]['did'])],
-                            index=models.AppBskyRichtextFacet.ByteSlice(byte_start=mentions[key]['byte_start'], byte_end=mentions[key]['byte_end'])
-                        )
-                    )
+        facets = []
+        for key in tags:
+            facets.append(
+                models.AppBskyRichtextFacet.Main(
+                    features=[models.AppBskyRichtextFacet.Tag(tag=tags[key]['name'][1:])],
+                    index=models.AppBskyRichtextFacet.ByteSlice(byte_start=tags[key]['byte_start'], byte_end=tags[key]['byte_end'])
+                )
+            )
+        for key in links:
+            facets.append(
+                models.AppBskyRichtextFacet.Main(
+                    features=[models.AppBskyRichtextFacet.Link(uri=links[key]['uri'])],
+                    index=models.AppBskyRichtextFacet.ByteSlice(byte_start=links[key]['byte_start'], byte_end=links[key]['byte_end'])
+                )
+            )
 
-                client = Login().client()
+        for key in mentions:
+            facets.append(
+                models.AppBskyRichtextFacet.Main(
+                    features=[models.AppBskyRichtextFacet.Mention(did=mentions[key]['did'])],
+                    index=models.AppBskyRichtextFacet.ByteSlice(byte_start=mentions[key]['byte_start'], byte_end=mentions[key]['byte_end'])
+                )
+            )
 
-                reply_to = None
-                if args.reply_to:
-                    post_to_reply_to = self.get_post(args.reply_to)
-                    if post_to_reply_to is None:
-                        return False
-                    reply_to = models.app.bsky.feed.post.ReplyRef(
-                        parent=models.create_strong_ref(post_to_reply_to),
-                        root=models.create_strong_ref(post_to_reply_to)
-                    )
+        try:
+            client = Login().client()
 
-                if card is not None:
-                    thumb_blob_ref = None
-                    if card['thumbnail'] is not None:
-                        image = self.get_thumbnail(card['thumbnail'])
-                        if image is not None:
-                            res = client.upload_blob(image)
-                            if res.blob is None:
-                                print('Failed to upload thumbnail', file=sys.stderr)
-                                return False
-                            thumb_blob_ref = res.blob
+            reply_to = None
+            if args.reply_to:
+                post_to_reply_to = self.get_post(args.reply_to)
+                if post_to_reply_to is None:
+                    return False
+                reply_to = models.app.bsky.feed.post.ReplyRef(
+                    parent=models.create_strong_ref(post_to_reply_to),
+                    root=models.create_strong_ref(post_to_reply_to)
+                )
 
-                    embed_external = models.AppBskyEmbedExternal.Main(
-                        external = models.AppBskyEmbedExternal.External(
-                            title = card['title'],
-                            description = card['description'],
-                            uri = card['uri'],
-                            thumb = thumb_blob_ref
-                        )
+            if card is not None:
+                thumb_blob_ref = None
+                if card['thumbnail'] is not None:
+                    image = self.get_thumbnail(card['thumbnail'])
+                    if image is not None:
+                        res = client.upload_blob(image)
+                        if res.blob is None:
+                            print('Failed to upload thumbnail', file=sys.stderr)
+                            return False
+                        thumb_blob_ref = res.blob
+
+                embed_external = models.AppBskyEmbedExternal.Main(
+                    external = models.AppBskyEmbedExternal.External(
+                        title = card['title'],
+                        description = card['description'],
+                        uri = card['uri'],
+                        thumb = thumb_blob_ref
                     )
-                    res = client.send_post(text=message, facets=facets, embed=embed_external, reply_to=reply_to)
-                elif args.quote is not None:
-                    source = self.get_post(args.quote)
-                    if source is None:
-                        return False
-                    embed_record = models.AppBskyEmbedRecord.Main(
-                        record = models.ComAtprotoRepoStrongRef.Main(
-                            uri = source.uri,
-                            cid = source.cid
-                        )
+                )
+                res = client.send_post(text=message, facets=facets, embed=embed_external, reply_to=reply_to)
+            elif args.quote is not None:
+                source = self.get_post(args.quote)
+                if source is None:
+                    return False
+                embed_record = models.AppBskyEmbedRecord.Main(
+                    record = models.ComAtprotoRepoStrongRef.Main(
+                        uri = source.uri,
+                        cid = source.cid
                     )
-                    res = client.send_post(text=message, facets=facets, embed=embed_record, reply_to=reply_to)
-                elif args.image is not None:
-                    if len(args.image) > 4:
-                        print('Too many image files', file=sys.stderr)
-                        return False
-                    images = self.load_images(args.image)
-                    res = client.send_images(text=message, facets=facets, images=images, reply_to=reply_to)
+                )
+                res = client.send_post(text=message, facets=facets, embed=embed_record, reply_to=reply_to)
+            elif args.image is not None:
+                if len(args.image) > 4:
+                    print('Too many image files', file=sys.stderr)
+                    return False
+                images = self.load_images(args.image)
+                res = client.send_images(text=message, facets=facets, images=images, reply_to=reply_to)
+            else:
+                res = client.send_post(text=message, facets=facets, reply_to=reply_to)
+
+            posts = client.get_posts([res.uri])
+            for post in posts.posts:
+                post_data = PostData(delimiter=args.delimiter).set(post)
+                if args.id:
+                    print(post_data.get_uri_cid())
                 else:
-                    res = client.send_post(text=message, facets=facets, reply_to=reply_to)
-
-                posts = client.get_posts([res.uri])
-                for post in posts.posts:
-                    post_data = PostData(delimiter=args.delimiter).set(post)
-                    if args.id:
-                        print(post_data.get_uri_cid())
-                    else:
-                        print(post_data)
-            except atproto_client.exceptions.RequestErrorBase as e:
+                    print(post_data)
+        except atproto_client.exceptions.RequestErrorBase as e:
+            if e.response:
                 print(f'{e.response.status_code} {e.response.content.message}', file=sys.stderr)
-                return False
+            else:
+                print(f'{e.__class__.__name__}', file=sys.stderr)
+            return False
 
         return True
