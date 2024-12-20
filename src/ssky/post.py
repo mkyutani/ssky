@@ -92,6 +92,8 @@ class Post:
             result = soup.find('meta', attrs={'property': 'og:image'})
             if result is not None:
                 thumbnail = result.get('content')
+                if len(thumbnail) == 0:
+                    thumbnail = None
 
             return {
                 'title': title,
