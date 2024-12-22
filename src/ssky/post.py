@@ -212,7 +212,7 @@ class Post:
             for image in args.image:
                 print(args.delimiter.join(['Image', image]))
             if card is not None:
-                print(args.delimiter.join(['Card', card["uri"], card["title"], card["description"], card["thumbnail"]]))
+                print(args.delimiter.join(filter(lambda x: x is not None, ['Card', card["uri"], card["title"], card["description"], card["thumbnail"]])))
             if args.reply_to:
                 print(args.delimiter.join(['Reply to', args.reply_to]))
             return True
