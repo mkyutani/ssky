@@ -15,6 +15,7 @@ class Search:
         parser = subparsers.add_parser(self.name(), help='Search posts')
         parser.add_argument('q', type=str, metavar='QUERY', help='Query string')
         parser.add_argument('-a', '--author', type=str, metavar='ACTOR', help='Author handle or DID')
+        parser.add_argument('-l', '--long', action='store_true', help='Long output')
         parser.add_argument('-s', '--since', type=str, metavar='TIMESTAMP', help='Since timestamp (ex. 2001-01-01T00:00:00Z, 20010101000000, 20010101)')
         parser.add_argument('-u', '--until', type=str, metavar='TIMESTAMP', help='Until timestamp (ex. 2099-12-31T23:59:59Z, 20991231235959, 20991231)')
         parser.add_argument('-D', '--delimiter', type=str, default=' ', metavar='STRING', help='Delimiter')
@@ -56,10 +57,16 @@ class Search:
                 )
             )
 
+            continued = False
             for post in res.posts:
                 post_data = PostData(delimiter=args.delimiter).set(post)
                 if args.id:
                     print(post_data.get_uri_cid())
+                elif args.long:
+                    if continued:
+                        print('--------')
+                    print(post_data.long())
+                    continued = True
                 else:
                     print(post_data)
         except atproto_client.exceptions.RequestErrorBase as e:
