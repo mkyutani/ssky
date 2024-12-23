@@ -16,6 +16,7 @@ class PostData:
         self.author_handle = author_handle
         self.author_display_name = author_display_name
         self.text = text
+        self.created_at = None
         self.delimiter = delimiter if delimiter is not None else self.default_delimiter
 
     def __str__(self) -> str:
@@ -34,6 +35,7 @@ class PostData:
             f'Author-DID: {self.author_did if self.author_did is not None else ""}',
             f'Author-Handle: {self.author_handle if self.author_handle is not None else ""}',
             f'Author-Display-Name: {self.author_display_name if self.author_display_name is not None else ""}',
+            f'Created-At: {self.created_at if self.created_at is not None else ""}',
             f'',
             self.text])
 
@@ -52,6 +54,7 @@ class PostData:
             self.author_handle = model.author.handle
             self.author_display_name = model.author.display_name
             self.text = model.record.text
+            self.created_at = model.record.created_at
         else:
             raise ValueError('Unsupported model type')
         return self
@@ -63,4 +66,5 @@ class PostData:
         self.author_handle = items['author_handle'] if 'author_handle' in items else self.author_handle
         self.author_display_name = items['author_display_name'] if 'author_display_name' in items else self.author_display_name
         self.text = items['text'] if 'text' in items else self.text
+        self.created_at = items['created_at'] if 'created_at' in items else self.text
         return self
