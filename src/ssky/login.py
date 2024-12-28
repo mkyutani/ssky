@@ -1,32 +1,28 @@
-from atproto import Client
-from ssky.env import Environment
+import sys
+import atproto_client
+from ssky.config import Config
 
 class Login:
 
-    class Session:
-        def __init__(self, client=None, profile=None):
-            self.client = client
-            self.profile = profile
+    def name(self) -> str:
+        return 'login'
 
-    session = None
+    def parse(self, subparsers) -> None:
+        parser = subparsers.add_parser(self.name(), help='Login')
+        parser.add_argument('handle', type=str, help='User handle')
+        parser.add_argument('password', type=str, help='User password')
 
-    @classmethod
-    def get_session(cls) -> Session:
-        if cls.session is None:
-            env = Environment()
-            client = Client()
-            profile = client.login(env.username(), env.password())
-            cls.session = cls.Session(client, profile)
-        return cls.session
+    def do(self, args) -> bool:
+        try:
+            config = Config(args.handle, args.password)
+            if config is None:
+                return False
+            config.persist()
+        except atproto_client.exceptions.RequestErrorBase as e:
+            if e.response:
+                print(f'{e.response.status_code} {e.response.content.message}', file=sys.stderr)
+            else:
+                print(f'{e.__class__.__name__}', file=sys.stderr)
+            return False
 
-    def client(self):
-        return Login.get_session().client
-
-    def profile(self):
-        return Login.get_session().profile
-
-    def did(self):
-        return Login.get_session().profile.did
-
-    def handle(self):
-        return Login.get_session().profile.handle
+        return True

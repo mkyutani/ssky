@@ -2,8 +2,8 @@ import re
 import sys
 from atproto import models
 import atproto_client
-from ssky.login import Login
-from ssky.post_data import PostData
+from ssky.config import Config
+from ssky.post_data_list import PostDataList
 from ssky.util import expand_actor
 
 class Search:
@@ -23,31 +23,28 @@ class Search:
         parser.add_argument('-L', '--limit', type=int, default=100, metavar='NUM', help='Limit lines (<=100)')
 
     def do(self, args) -> bool:
+        if args.since:
+            if re.match(r'^\d{14}$', args.since):
+                since = f'{args.since[:4]}-{args.since[4:6]}-{args.since[6:8]}T{args.since[8:10]}:{args.since[10:12]}:{args.since[10:12]}Z'
+            elif re.match(r'^\d{8}$', args.since):
+                since = f'{args.since[:4]}-{args.since[4:6]}-{args.since[6:8]}T00:00:00Z'
+            else:
+                since = args.since
+        else:
+            since = None
+
+        if args.until:
+            if re.match(r'^\d{14}$', args.until):
+                until = f'{args.until[:4]}-{args.until[4:6]}-{args.until[6:8]}T{args.until[8:10]}:{args.until[10:12]}:{args.until[10:12]}Z'
+            elif re.match(r'^\d{8}$', args.until):
+                until = f'{args.until[:4]}-{args.until[4:6]}-{args.until[6:8]}T23:59:59Z'
+            else:
+                until = args.until
+        else:
+            until = None
+
         try:
-            login = Login()
-            client = login.client()
-
-            if args.since:
-                if re.match(r'^\d{14}$', args.since):
-                    since = f'{args.since[:4]}-{args.since[4:6]}-{args.since[6:8]}T{args.since[8:10]}:{args.since[10:12]}:{args.since[10:12]}Z'
-                elif re.match(r'^\d{8}$', args.since):
-                    since = f'{args.since[:4]}-{args.since[4:6]}-{args.since[6:8]}T00:00:00Z'
-                else:
-                    since = args.since
-            else:
-                since = None
-
-            if args.until:
-                if re.match(r'^\d{14}$', args.until):
-                    until = f'{args.until[:4]}-{args.until[4:6]}-{args.until[6:8]}T{args.until[8:10]}:{args.until[10:12]}:{args.until[10:12]}Z'
-                elif re.match(r'^\d{8}$', args.until):
-                    until = f'{args.until[:4]}-{args.until[4:6]}-{args.until[6:8]}T23:59:59Z'
-                else:
-                    until = args.until
-            else:
-                until = None
-
-            res = client.app.bsky.feed.search_posts(
+            res = Config().client().app.bsky.feed.search_posts(
                 models.AppBskyFeedSearchPosts.Params(
                     author=expand_actor(args.author),
                     limit=args.limit,
@@ -56,24 +53,20 @@ class Search:
                     until=until
                 )
             )
-
-            continued = False
-            for post in res.posts:
-                post_data = PostData(delimiter=args.delimiter).set(post)
-                if args.id:
-                    print(post_data.get_uri_cid())
-                elif args.long:
-                    if continued:
-                        print('--------')
-                    print(post_data.long())
-                    continued = True
-                else:
-                    print(post_data)
         except atproto_client.exceptions.RequestErrorBase as e:
             if e.response:
                 print(f'{e.response.status_code} {e.response.content.message}', file=sys.stderr)
             else:
                 print(f'{e.__class__.__name__}', file=sys.stderr)
             return False
+        except atproto_client.exceptions.LoginRequiredError as e:
+            print(str(e), file=sys.stderr)
+            return False
+
+        if res.posts and len(res.posts) > 0:
+            post_data_list = PostDataList()
+            for post in res.posts:
+                post_data_list.append(post)
+            post_data_list.print(id_only=args.id, long_format=args.long, delimiter=args.delimiter)
 
         return True

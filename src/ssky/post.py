@@ -1,11 +1,12 @@
 import re
 import sys
+from time import sleep
 from atproto import IdResolver, models
 import atproto_client
 from bs4 import BeautifulSoup
 import requests
-from ssky.login import Login
-from ssky.post_data import PostData
+from ssky.config import Config
+from ssky.post_data_list import PostDataList
 from ssky.util import disjoin_uri_cid, is_joined_uri_cid
 
 class Post:
@@ -18,6 +19,7 @@ class Post:
         parser.add_argument('message', nargs='?', type=str, help='The message to post')
         parser.add_argument('-d', '--dry', action='store_true', help='Dry run')
         parser.add_argument('-i', '--image', action='append', type=str, default=[], metavar='PATH', help='Image files to attach')
+        parser.add_argument('-l', '--long', action='store_true', help='Long output')
         parser.add_argument('-q', '--quote', type=str, metavar='URI', help='Quote a post')
         parser.add_argument('-r', '--reply-to', type=str, metavar='URI', help='Reply to a post')
         parser.add_argument('-D', '--delimiter', type=str, default=' ', metavar='STRING', help='Delimiter')
@@ -178,11 +180,15 @@ class Post:
         else:
             uri = uri_cid
             cid = None
-        retrieved_posts = Login().client().get_posts([uri])
+        retrieved_posts = Config().client().get_posts([uri])
         posts = []
         for retrieved_post in retrieved_posts.posts:
             if retrieved_post.uri == uri and (cid is None or retrieved_post.cid == cid):
                 posts.append(retrieved_post)
+
+        if len(posts) == 0:
+            return None
+
         return posts[0]
 
     def do(self, args) -> bool:
@@ -242,7 +248,7 @@ class Post:
             )
 
         try:
-            client = Login().client()
+            client = Config().client()
 
             reply_to = None
             if args.reply_to:
@@ -294,18 +300,19 @@ class Post:
             else:
                 res = client.send_post(text=message, facets=facets, reply_to=reply_to)
 
-            posts = client.get_posts([res.uri])
-            for post in posts.posts:
-                post_data = PostData(delimiter=args.delimiter).set(post)
-                if args.id:
-                    print(post_data.get_uri_cid())
-                else:
-                    print(post_data)
+            post = self.get_post(res.uri)
+            while post is None:
+                print('waiting', file=sys.stderr)
+                sleep(1)
+                post = self.get_post(res.uri)
+
         except atproto_client.exceptions.RequestErrorBase as e:
             if e.response:
                 print(f'{e.response.status_code} {e.response.content.message}', file=sys.stderr)
             else:
                 print(f'{e.__class__.__name__}', file=sys.stderr)
             return False
+
+        PostDataList().append(post).print(id_only=args.id, long_format=args.long, delimiter=args.delimiter)
 
         return True

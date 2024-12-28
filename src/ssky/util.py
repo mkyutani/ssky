@@ -1,6 +1,6 @@
 import re
 
-from ssky.login import Login
+from ssky.config import Config
 
 def summarize(source, length_max=0):
     summary = re.sub(r'\s', '_', ''.join(list(map(lambda c: c if c > ' ' else ' ', source))))
@@ -10,7 +10,7 @@ def summarize(source, length_max=0):
 
 def expand_actor(name: str) -> str:
     if name == 'myself':
-        actor = Login().did()
+        actor = Config().profile().did
     else:
         actor = name
     return actor

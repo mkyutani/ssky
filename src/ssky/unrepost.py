@@ -1,6 +1,6 @@
 import sys
 import atproto_client
-from ssky.login import Login
+from ssky.config import Config
 from ssky.util import disjoin_uri_cid, is_joined_uri_cid
 
 class Unrepost:
@@ -19,7 +19,7 @@ class Unrepost:
             uri = args.param
 
         try:
-            client = Login().client()
+            client = Config().client()
             status = client.delete_repost(uri)
             if status is False:
                 return False

@@ -1,6 +1,6 @@
 import sys
 import atproto_client
-from ssky.login import Login
+from ssky.config import Config
 from ssky.util import disjoin_uri_cid, is_joined_uri_cid
 
 class Delete:
@@ -19,8 +19,7 @@ class Delete:
             uri = args.param
 
         try:
-            client = Login().client()
-            status = client.delete_post(uri)
+            status = Config().client().delete_post(uri)
             if status is False:
                 return False
         except atproto_client.exceptions.RequestErrorBase as e:

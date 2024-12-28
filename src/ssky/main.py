@@ -5,6 +5,7 @@ import sys
 
 from ssky.delete import Delete
 from ssky.get import Get
+from ssky.login import Login
 from ssky.post import Post
 from ssky.profile import Profile
 from ssky.repost import Repost
@@ -14,6 +15,7 @@ from ssky.unrepost import Unrepost
 function_map = [
     Delete(),
     Get(),
+    Login(),
     Post(),
     Profile(),
     Repost(),

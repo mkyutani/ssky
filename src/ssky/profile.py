@@ -1,6 +1,6 @@
 import sys
 import atproto_client
-from ssky.login import Login
+from ssky.config import Config
 from ssky.util import expand_actor, summarize
 
 class Profile:
@@ -16,11 +16,8 @@ class Profile:
 
     def do(self, args) -> bool:
         try:
-            login = Login()
-            client = login.client()
-
             actor = expand_actor(args.name)
-            profile = client.get_profile(actor)
+            profile = Config().client().get_profile(actor)
             display_name_summary = summarize(profile.display_name)
 
             if args.id:

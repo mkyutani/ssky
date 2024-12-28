@@ -1,7 +1,7 @@
 import sys
 import atproto_client
-from ssky.login import Login
-from ssky.post_data import PostData
+from ssky.config import Config
+from ssky.post_data_list import PostDataList
 from ssky.util import disjoin_uri_cid, is_joined_uri_cid
 
 class Repost:
@@ -12,6 +12,7 @@ class Repost:
     def parse(self, subparsers) -> None:
         parser = subparsers.add_parser(self.name(), help='Repost')
         parser.add_argument('param', type=str, help='URI(at://...)[::CID]')
+        parser.add_argument('-l', '--long', action='store_true', help='Long output')
         parser.add_argument('-D', '--delimiter', type=str, default=' ', metavar='STRING', help='Delimiter')
         parser.add_argument('-I', '--id', action='store_true', help='Print IDs (URI::CID) only')
 
@@ -22,27 +23,30 @@ class Repost:
             source_uri = args.param
             source_cid = None
 
+        post_data_list = PostDataList()
+
         try:
-            client = Login().client()
+            client = Config().client()
+
+            sources = client.get_posts([source_uri])
+            for source_post in sources.posts:
+                if source_post.uri == source_uri and (source_cid is None or source_post.cid == source_cid):
+                    source = source_post
+                    source_cid = source_post.cid
+                    break
 
             repost = client.repost(source_uri, source_cid)
             if repost is None:
                 return False
 
-            sources = client.get_posts([source_uri])
-            for source_post in sources.posts:
-                if source_post.uri == source_uri and (source_cid is None or source_post.cid == source_cid):
-                    post_data = PostData(delimiter=args.delimiter).set(source_post)
-                    post_data.set_items({'uri': repost.uri, 'cid': repost.cid})
-                    if args.id:
-                        print(post_data.get_uri_cid())
-                    else:
-                        print(post_data)
+            post_data_list.append(source, uri=repost.uri, cid=repost.cid)
         except atproto_client.exceptions.RequestErrorBase as e:
             if e.response:
                 print(f'{e.response.status_code} {e.response.content.message}', file=sys.stderr)
             else:
                 print(f'{e.__class__.__name__}', file=sys.stderr)
             return False
+
+        post_data_list.print(id_only=args.id, long_format=args.long, delimiter=args.delimiter)
 
         return True
