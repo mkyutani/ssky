@@ -101,7 +101,9 @@ class PostDataList:
         printable_list = self.create_printable_list(id_only=id_only, long_format=long_format, delimiter=delimiter)
         continued = False
         for printable in printable_list:
-            if long_format and continued:
+            if long_format:
+                if continued:
                     print('----------------')
+                else:
                     continued = True
             print(printable)
