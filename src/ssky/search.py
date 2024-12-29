@@ -21,6 +21,7 @@ class Search:
         parser.add_argument('-I', '--id', action='store_true', help='Print IDs (URI::CID) only')
         parser.add_argument('-L', '--long', action='store_true', help='Long output')
         parser.add_argument('-N', '--limit', type=int, default=100, metavar='NUM', help='Limit lines (<=100)')
+        parser.add_argument('-T', '--text', action='store_true', help='Print text only')
 
     def do(self, args) -> bool:
         if args.since:
@@ -67,6 +68,6 @@ class Search:
             post_data_list = PostDataList()
             for post in res.posts:
                 post_data_list.append(post)
-            post_data_list.print(id_only=args.id, long_format=args.long, delimiter=args.delimiter)
+            post_data_list.print(id_only=args.id, text_only = args.text, long_format=args.long, delimiter=args.delimiter)
 
         return True

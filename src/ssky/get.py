@@ -15,7 +15,9 @@ class Get:
         parser.add_argument('-D', '--delimiter', type=str, default=' ', metavar='STRING', help='Delimiter')
         parser.add_argument('-I', '--id', action='store_true', help='Print IDs (URI::CID) only')
         parser.add_argument('-L', '--long', action='store_true', help='Long output')
+        parser.add_argument('-O', '--output', type=str, default=None, metavar='DIR', help='Output to files')
         parser.add_argument('-N', '--limit', type=int, default=100, metavar='NUM', help='Limit lines (<=100)')
+        parser.add_argument('-T', '--text', action='store_true', help='Print text only')
 
     def get_post(self, slug, user, cid) -> None:
         if user is None:
@@ -82,6 +84,6 @@ class Get:
             print(str(e), file=sys.stderr)
             return False
 
-        self.post_data_list.print(id_only=args.id, long_format=args.long, delimiter=args.delimiter)
+        self.post_data_list.print(id_only=args.id, text_only=args.text, long_format=args.long, output=args.output, delimiter=args.delimiter)
 
         return True

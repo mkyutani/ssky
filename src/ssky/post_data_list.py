@@ -1,3 +1,5 @@
+from datetime import datetime
+import os
 from atproto_client import models
 from ssky.util import join_uri_cid, summarize
 
@@ -24,6 +26,9 @@ class PostDataList:
         def id(self) -> str:
             return join_uri_cid(self.uri, self.cid)
 
+        def text_only(self) -> str:
+            return self.text.rstrip()
+
         def short(self, delimiter: str = None) -> str:
             if delimiter is None:
                 delimiter = PostDataList.get_default_delimiter()
@@ -44,6 +49,16 @@ class PostDataList:
                 f'Created-At: {self.created_at}',
                 f'',
                 self.text.rstrip()])
+
+        def printable(self, id_only: bool = False, text_only: bool = False, long_format: bool = False, delimiter: str = None) -> str:
+            if id_only:
+                return self.id()
+            elif text_only:
+                return self.text_only()
+            elif long_format:
+                return self.long()
+            else:
+                return self.short(delimiter=delimiter)
 
     default_delimiter = ' '
 
@@ -89,21 +104,29 @@ class PostDataList:
 
         return self
 
-    def create_printable_list(self, id_only: bool = False, long_format: bool = False, delimiter: str = None) -> list[str]:
-        if id_only:
-            return [item.id() for item in self.items]
-        elif long_format:
-            return [item.long() for item in self.items]
+    def print(self, id_only: bool = False, text_only: bool = False, long_format: bool = False, output: str = None, delimiter: str = None) -> None:
+        if output:
+            for item in self.items:
+                iso_datetime_str = item.created_at
+                if iso_datetime_str is None:
+                    iso_datetime_str = "1970-01-01T00:00:00.000Z"
+                try:
+                    datetime_obj = datetime.strptime(iso_datetime_str, "%Y-%m-%dT%H:%M:%S.%fZ")
+                except ValueError:
+                    datetime_obj = datetime.strptime(iso_datetime_str, "%Y-%m-%dT%H:%M:%S.%f+00:00")
+                formatted_datetime_str = datetime_obj.strftime("%Y%m%d%H%M%S%fUTC")
+                formatted_datetime_str = formatted_datetime_str[:-6] + formatted_datetime_str[-6:-3] + "000000UTC"
+                filename = f"{item.author_handle}.{formatted_datetime_str}.txt"
+                path = os.path.join(output, filename)
+                with open(path, 'w') as f:
+                    f.write(item.printable(id_only=id_only, text_only=text_only, long_format=long_format, delimiter=delimiter))
+                    f.write('\n')
         else:
-            return [item.short(delimiter=delimiter) for item in self.items]
-
-    def print(self, id_only: bool = False, long_format: bool = False, delimiter: str = None) -> None:
-        printable_list = self.create_printable_list(id_only=id_only, long_format=long_format, delimiter=delimiter)
-        continued = False
-        for printable in printable_list:
-            if long_format:
-                if continued:
-                    print('----------------')
-                else:
-                    continued = True
-            print(printable)
+            continued = False
+            for item in self.items:
+                if long_format:
+                    if continued:
+                        print('----------------')
+                    else:
+                        continued = True
+                print(item.printable(id_only=id_only, text_only=text_only, long_format=long_format, delimiter=delimiter))
