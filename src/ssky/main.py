@@ -11,6 +11,7 @@ from ssky.profile import Profile
 from ssky.repost import Repost
 from ssky.search import Search
 from ssky.unrepost import Unrepost
+from ssky.user import User
 
 function_map = [
     Delete(),
@@ -20,7 +21,8 @@ function_map = [
     Profile(),
     Repost(),
     Search(),
-    Unrepost()
+    Unrepost(),
+    User()
 ]
 
 def set_io_buffers():
