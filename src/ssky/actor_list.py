@@ -59,7 +59,7 @@ class ActorList:
         return str(self.items)
 
     def append(self, author: models.base.ModelBase, did: str = None, handle: str = None, display_name: str = None, description: str = None,  avatar: str = None, created_at: str = None) -> 'ActorList':
-        if type(author) is models.AppBskyActorDefs.ProfileView:
+        if type(author) is models.AppBskyActorDefs.ProfileView or type(author) is models.AppBskyActorDefs.ProfileViewDetailed:
             did = author.did if did is None else did
             handle = author.handle if handle is None else handle
             display_name = author.display_name if display_name is None else display_name
