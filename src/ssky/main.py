@@ -4,23 +4,27 @@ import os
 import sys
 
 from ssky.delete import Delete
+from ssky.follow import Follow
 from ssky.get import Get
 from ssky.login import Login
 from ssky.post import Post
 from ssky.profile import Profile
 from ssky.repost import Repost
 from ssky.search import Search
+from ssky.unfollow import Unfollow
 from ssky.unrepost import Unrepost
 from ssky.user import User
 
 function_map = [
     Delete(),
+    Follow(),
     Get(),
     Login(),
     Post(),
     Profile(),
     Repost(),
     Search(),
+    Unfollow(),
     Unrepost(),
     User()
 ]
