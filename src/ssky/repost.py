@@ -34,17 +34,10 @@ class Repost:
             sources = client.get_posts([source_uri])
             for source_post in sources.posts:
                 if source_post.uri == source_uri and (source_cid is None or source_post.cid == source_cid):
-                    source = source_post
                     source_cid = source_post.cid
                     break
 
-            repost = client.repost(source_uri, source_cid)
-            if repost is None:
-                return False
-
-            post_data_list = PostDataList()
-            post_data_list.append(source, uri_cid=join_uri_cid(repost.uri, repost.cid))
-            post_data_list.print(format=args.format, output=args.output, delimiter=args.delimiter)
+            client.repost(source_uri, source_cid)
         except atproto_client.exceptions.RequestErrorBase as e:
             if e.response:
                 print(f'{e.response.status_code} {e.response.content.message}', file=sys.stderr)
