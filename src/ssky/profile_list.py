@@ -1,14 +1,14 @@
 from atproto_client import models
 from ssky.config import Config
-from ssky.util import join_uri_cid, summarize
+from ssky.util import summarize
 
 class ProfileList:
 
     class Item:
         profile: models.AppBskyActorDefs.ProfileViewDetailed
 
-        def __init__(self, actor: str) -> None:
-            self.profile = Config().client().get_profile(actor)
+        def __init__(self, profile: models.AppBskyActorDefs.ProfileViewDetailed) -> None:
+            self.profile = profile
 
         def id(self) -> str:
             return self.profile.did
@@ -61,18 +61,32 @@ class ProfileList:
         return cls.default_delimiter
 
     def __init__(self, default_delimiter: str = None) -> None:
-        self.items = []
+        self.actors = []
+        self.items = None
         if default_delimiter is not None:
             self.default_delimiter = default_delimiter
 
     def __str__(self) -> str:
-        return str(self.items)
+        return str(self.actors)
 
     def append(self, actor: str) -> 'ProfileList':
-        self.items.append(self.Item(actor))
+        self.actors.append(actor)
+        return self
+
+    def update(self) -> 'ProfileList':
+        if self.items is None:
+            self.items = []
+            block_count = len(self.actors) // 25 + 1
+            for i in range(block_count):
+                begin = i * 25
+                end = (i + 1) * 25 if i + 1 < block_count else len(self.actors)
+                profiles = Config().client().get_profiles(self.actors[begin:end]).profiles
+                for profile in profiles:
+                    self.items.append(self.Item(profile))
         return self
 
     def print(self, format: str, delimiter: str = None) -> None:
+        self.update()
         continued = False
         for item in self.items:
             if format == 'long':
