@@ -19,6 +19,7 @@ class Post:
         parser.add_argument('message', nargs='?', type=str, help='The message to post')
         parser.add_argument('-d', '--dry', action='store_true', help='Dry run')
         parser.add_argument('-i', '--image', action='append', type=str, default=[], metavar='PATH', help='Image files to attach')
+        parser.add_argument('-O', '--output', type=str, default=None, metavar='DIR', help='Output to files')
         parser.add_argument('-q', '--quote', type=str, metavar='URI', help='Quote a post')
         parser.add_argument('-r', '--reply-to', type=str, metavar='URI', help='Reply to a post')
         parser.add_argument('-D', '--delimiter', type=str, default=' ', metavar='STRING', help='Delimiter')

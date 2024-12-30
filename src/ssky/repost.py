@@ -13,6 +13,7 @@ class Repost:
         parser = subparsers.add_parser(self.name(), help='Repost')
         parser.add_argument('param', type=str, help='URI(at://...)[::CID]')
         parser.add_argument('-D', '--delimiter', type=str, default=' ', metavar='STRING', help='Delimiter')
+        parser.add_argument('-O', '--output', type=str, default=None, metavar='DIR', help='Output to files')
         formatting_group = parser.add_mutually_exclusive_group()
         formatting_group.add_argument('-I', '--id', action='store_true', help='Print IDs (URI::CID) only')
         formatting_group.add_argument('-L', '--long', action='store_true', help='Long output')
