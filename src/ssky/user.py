@@ -11,7 +11,7 @@ class User:
 
     def parse(self, subparsers) -> None:
         parser = subparsers.add_parser(self.name(), help='Search users')
-        parser.add_argument('q', type=str, metavar='QUERY', help='Query string')
+        parser.add_argument('q', nargs='?', type=str, default='*', metavar='QUERY', help='Query string')
         parser.add_argument('-D', '--delimiter', type=str, default=' ', metavar='STRING', help='Delimiter')
         parser.add_argument('-N', '--limit', type=int, default=100, metavar='NUM', help='Limit lines (<=100)')
         parser.set_defaults(format='')

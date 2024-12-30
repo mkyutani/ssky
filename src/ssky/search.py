@@ -19,6 +19,7 @@ class Search:
         parser.add_argument('-u', '--until', type=str, metavar='TIMESTAMP', help='Until timestamp (ex. 2099-12-31T23:59:59Z, 20991231235959, 20991231)')
         parser.add_argument('-D', '--delimiter', type=str, default=' ', metavar='STRING', help='Delimiter')
         parser.add_argument('-N', '--limit', type=int, default=100, metavar='NUM', help='Limit lines (<=100)')
+        parser.add_argument('-O', '--output', type=str, default=None, metavar='DIR', help='Output to files')
         parser.set_defaults(format='')
         format_group = parser.add_mutually_exclusive_group()
         format_group.add_argument('-I', '--id', action='store_const', dest='format', const='id', help='Print IDs (URI::CID) only')
@@ -26,11 +27,6 @@ class Search:
         format_group.add_argument('-T', '--text', action='store_const', dest='format', const='text', help='Print text only')
 
     def do(self, args) -> bool:
-        if args.q:
-            q = args.q
-        else:
-            q = '*'
-
         if args.since:
             if re.match(r'^\d{14}$', args.since):
                 since = f'{args.since[:4]}-{args.since[4:6]}-{args.since[6:8]}T{args.since[8:10]}:{args.since[10:12]}:{args.since[10:12]}Z'
@@ -56,7 +52,7 @@ class Search:
                 models.AppBskyFeedSearchPosts.Params(
                     author=expand_actor(args.author),
                     limit=args.limit,
-                    q=q,
+                    q=args.q,
                     since=since,
                     until=until
                 )
