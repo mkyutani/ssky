@@ -18,6 +18,7 @@ class Get:
         parser.set_defaults(format='')
         format_group = parser.add_mutually_exclusive_group()
         format_group.add_argument('-I', '--id', action='store_const', dest='format', const='id', help='Print IDs (URI::CID) only')
+        format_group.add_argument('-J', '--json', action='store_const', dest='format', const='json', help='Print in JSON format')
         format_group.add_argument('-L', '--long', action='store_const', dest='format', const='long', help='Print in long format')
         format_group.add_argument('-T', '--text', action='store_const', dest='format', const='text', help='Print text only')
 

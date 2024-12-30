@@ -52,6 +52,9 @@ class PostDataList:
                 f'',
                 self.post.record.text.rstrip()])
 
+        def json(self) -> str:
+            return models.utils.get_model_as_json(self.post)
+
         def printable(self, format: str, delimiter: str = None) -> str:
             if format == 'id':
                 return self.id()
@@ -59,6 +62,8 @@ class PostDataList:
                 return self.long()
             elif format == 'text':
                 return self.text_only()
+            elif format == 'json':
+                return self.json()
             else:
                 return self.short(delimiter=delimiter)
 
