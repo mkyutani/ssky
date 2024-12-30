@@ -13,8 +13,10 @@ class Repost:
         parser = subparsers.add_parser(self.name(), help='Repost')
         parser.add_argument('param', type=str, help='URI(at://...)[::CID]')
         parser.add_argument('-D', '--delimiter', type=str, default=' ', metavar='STRING', help='Delimiter')
-        parser.add_argument('-I', '--id', action='store_true', help='Print IDs (URI::CID) only')
-        parser.add_argument('-L', '--long', action='store_true', help='Long output')
+        formatting_group = parser.add_mutually_exclusive_group()
+        formatting_group.add_argument('-I', '--id', action='store_true', help='Print IDs (URI::CID) only')
+        formatting_group.add_argument('-L', '--long', action='store_true', help='Long output')
+        formatting_group.add_argument('-T', '--text', action='store_true', help='Print text only')
 
     def do(self, args) -> bool:
         if is_joined_uri_cid(args.param):
@@ -47,6 +49,6 @@ class Repost:
                 print(f'{e.__class__.__name__}', file=sys.stderr)
             return False
 
-        post_data_list.print(id_only=args.id, long_format=args.long, delimiter=args.delimiter)
+        post_data_list.print(id_only=args.id, text_only=args.text, long_format=args.long, output=args.output, delimiter=args.delimiter)
 
         return True

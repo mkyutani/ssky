@@ -13,11 +13,12 @@ class Get:
         parser = subparsers.add_parser(self.name(), help='Get posts')
         parser.add_argument('param', nargs='?', type=str, metavar='PARAM', help='URI(at://...), slug(HANDLE:SLUG[:CID]), DID(did:...), handle, or none as timeline')
         parser.add_argument('-D', '--delimiter', type=str, default=' ', metavar='STRING', help='Delimiter')
-        parser.add_argument('-I', '--id', action='store_true', help='Print IDs (URI::CID) only')
-        parser.add_argument('-L', '--long', action='store_true', help='Long output')
         parser.add_argument('-O', '--output', type=str, default=None, metavar='DIR', help='Output to files')
         parser.add_argument('-N', '--limit', type=int, default=100, metavar='NUM', help='Limit lines (<=100)')
-        parser.add_argument('-T', '--text', action='store_true', help='Print text only')
+        formatting_group = parser.add_mutually_exclusive_group()
+        formatting_group.add_argument('-I', '--id', action='store_true', help='Print IDs (URI::CID) only')
+        formatting_group.add_argument('-L', '--long', action='store_true', help='Long output')
+        formatting_group.add_argument('-T', '--text', action='store_true', help='Print text only')
 
     def get_post(self, slug, user, cid) -> None:
         if user is None:
