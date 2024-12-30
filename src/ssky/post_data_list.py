@@ -50,13 +50,13 @@ class PostDataList:
                 f'',
                 self.text.rstrip()])
 
-        def printable(self, id_only: bool = False, text_only: bool = False, long_format: bool = False, delimiter: str = None) -> str:
-            if id_only:
+        def printable(self, format: str, delimiter: str = None) -> str:
+            if format == 'id':
                 return self.id()
-            elif text_only:
-                return self.text_only()
-            elif long_format:
+            elif format == 'long':
                 return self.long()
+            elif format == 'text':
+                return self.text_only()
             else:
                 return self.short(delimiter=delimiter)
 
@@ -104,7 +104,7 @@ class PostDataList:
 
         return self
 
-    def print(self, id_only: bool = False, text_only: bool = False, long_format: bool = False, output: str = None, delimiter: str = None) -> None:
+    def print(self, format: str, output: str = None, delimiter: str = None) -> None:
         if output:
             for item in self.items:
                 iso_datetime_str = item.created_at
@@ -119,14 +119,14 @@ class PostDataList:
                 filename = f"{item.author_handle}.{formatted_datetime_str}.txt"
                 path = os.path.join(output, filename)
                 with open(path, 'w') as f:
-                    f.write(item.printable(id_only=id_only, text_only=text_only, long_format=long_format, delimiter=delimiter))
+                    f.write(item.printable(format, delimiter=delimiter))
                     f.write('\n')
         else:
             continued = False
             for item in self.items:
-                if long_format:
+                if format == 'long':
                     if continued:
                         print('----------------')
                     else:
                         continued = True
-                print(item.printable(id_only=id_only, text_only=text_only, long_format=long_format, delimiter=delimiter))
+                print(item.printable(format, delimiter=delimiter))

@@ -19,10 +19,11 @@ class Search:
         parser.add_argument('-u', '--until', type=str, metavar='TIMESTAMP', help='Until timestamp (ex. 2099-12-31T23:59:59Z, 20991231235959, 20991231)')
         parser.add_argument('-D', '--delimiter', type=str, default=' ', metavar='STRING', help='Delimiter')
         parser.add_argument('-N', '--limit', type=int, default=100, metavar='NUM', help='Limit lines (<=100)')
-        formatting_group = parser.add_mutually_exclusive_group()
-        formatting_group.add_argument('-I', '--id', action='store_true', help='Print IDs (URI::CID) only')
-        formatting_group.add_argument('-L', '--long', action='store_true', help='Long output')
-        formatting_group.add_argument('-T', '--text', action='store_true', help='Print text only')
+        parser.set_defaults(format='')
+        format_group = parser.add_mutually_exclusive_group()
+        format_group.add_argument('-I', '--id', action='store_const', dest='format', const='id', help='Print IDs (URI::CID) only')
+        format_group.add_argument('-L', '--long', action='store_const', dest='format', const='long', help='Print in long format')
+        format_group.add_argument('-T', '--text', action='store_const', dest='format', const='text', help='Print text only')
 
     def do(self, args) -> bool:
         if args.q:
@@ -74,6 +75,6 @@ class Search:
             post_data_list = PostDataList()
             for post in res.posts:
                 post_data_list.append(post)
-            post_data_list.print(id_only=args.id, text_only = args.text, long_format=args.long, delimiter=args.delimiter)
+            post_data_list.print(format=args.format, output=args.output, delimiter=args.delimiter)
 
         return True

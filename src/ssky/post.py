@@ -23,10 +23,11 @@ class Post:
         parser.add_argument('-q', '--quote', type=str, metavar='URI', help='Quote a post')
         parser.add_argument('-r', '--reply-to', type=str, metavar='URI', help='Reply to a post')
         parser.add_argument('-D', '--delimiter', type=str, default=' ', metavar='STRING', help='Delimiter')
-        formatting_group = parser.add_mutually_exclusive_group()
-        formatting_group.add_argument('-I', '--id', action='store_true', help='Print IDs (URI::CID) only')
-        formatting_group.add_argument('-L', '--long', action='store_true', help='Long output')
-        formatting_group.add_argument('-T', '--text', action='store_true', help='Print text only')
+        parser.set_defaults(format='')
+        format_group = parser.add_mutually_exclusive_group()
+        format_group.add_argument('-I', '--id', action='store_const', dest='format', const='id', help='Print IDs (URI::CID) only')
+        format_group.add_argument('-L', '--long', action='store_const', dest='format', const='long', help='Print in long format')
+        format_group.add_argument('-T', '--text', action='store_const', dest='format', const='text', help='Print text only')
 
     def get_card(self, links):
         title = None
@@ -316,6 +317,6 @@ class Post:
                 print(f'{e.__class__.__name__}', file=sys.stderr)
             return False
 
-        PostDataList().append(post).print(id_only=args.id, text_only=args.text, long_format=args.long, output=args.output, delimiter=args.delimiter)
+        PostDataList().append(post).print(format=args.format, output=args.output, delimiter=args.delimiter)
 
         return True
