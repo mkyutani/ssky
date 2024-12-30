@@ -91,7 +91,7 @@ class PostDataList:
     def __str__(self) -> str:
         return str(self.uri_cids)
 
-    def append(self, post: models.base.ModelBase, profile: models.AppBskyActorDefs.ProfileViewDetailed = None, uri_cid: str = None) -> 'PostDataList':
+    def append(self, post: models.AppBskyFeedDefs.PostView, profile: models.AppBskyActorDefs.ProfileViewDetailed = None, uri_cid: str = None) -> 'PostDataList':
         item = self.Item(post, profile=profile, uri_cid=uri_cid)
         if item.id() not in [i.id() for i in self.items]:
             self.items.append(item)
