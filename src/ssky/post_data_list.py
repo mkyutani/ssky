@@ -1,7 +1,7 @@
 from datetime import datetime
 import os
 from atproto_client import models
-from ssky.util import disjoin_uri_cid, join_uri_cid, summarize
+from ssky.util import join_uri_cid, summarize
 
 class PostDataList:
 
@@ -41,16 +41,22 @@ class PostDataList:
             return delimiter.join([uri_cid, author_did, author_handle, display_name_summary, text_summary])
 
         def long(self) -> str:
-            uri, cid = disjoin_uri_cid(self.id())
-            return '\n'.join([
-                f'Author-DID: {self.post.author.did}',
-                f'Author-Display-Name: {self.post.author.display_name}',
-                f'Author-Handle: {self.post.author.handle}',
-                f'Created-At: {self.post.record.created_at}',
-                f'Record-CID: {cid}',
-                f'Record-URI: {uri}',
-                f'',
-                self.post.record.text.rstrip()])
+            return '\n'.join(
+                filter(
+                    lambda x: x is not None,
+                    [
+                        f'Author-DID: {self.post.author.did}',
+                        f'Author-Display-Name: {self.post.author.display_name}',
+                        f'Author-Handle: {self.post.author.handle}',
+                        f'Created-At: {self.post.record.created_at}',
+                        f'Record-CID: {self.post.cid}',
+                        f'Record-URI: {self.post.uri}',
+                        f'Repost-URI: {self.post.viewer.repost}' if self.post.viewer and self.post.viewer.repost else None,
+                        f'',
+                        self.post.record.text.rstrip()
+                    ]
+                )
+            )
 
         def json(self) -> str:
             return models.utils.get_model_as_json(self.post)
@@ -86,7 +92,9 @@ class PostDataList:
         return str(self.uri_cids)
 
     def append(self, post: models.base.ModelBase, profile: models.AppBskyActorDefs.ProfileViewDetailed = None, uri_cid: str = None) -> 'PostDataList':
-        self.items.append(self.Item(post, profile=profile, uri_cid=uri_cid))
+        item = self.Item(post, profile=profile, uri_cid=uri_cid)
+        if item.id() not in [i.id() for i in self.items]:
+            self.items.append(item)
         return self
 
     def print(self, format: str, output: str = None, delimiter: str = None) -> None:
