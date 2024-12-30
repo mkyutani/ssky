@@ -23,19 +23,14 @@ class ProfileList:
             return delimiter.join([did, handle, display_name_summary, description_summary])
 
         def long(self) -> str:
-            return '\n'.join(
-                filter(
-                    lambda x: x is not None,
-                    [
-                        f'DID: {self.profile.did}' if self.profile.did else None,
-                        f'Handle: {self.profile.handle}' if self.profile.handle else None,
-                        f'Display-Name: {self.profile.display_name}' if self.profile.display_name else None,
-                        f'Created-At: {self.profile.created_at}' if self.profile.created_at else None,
-                        '',
-                        f'{self.profile.description.rstrip()}' if self.profile.description else None
-                    ]
-                )
-            )
+            return '\n'.join([
+                f'Created-At: {self.profile.created_at}',
+                f'DID: {self.profile.did}',
+                f'Display-Name: {self.profile.display_name}',
+                f'Handle: {self.profile.handle}',
+                '',
+                f'{self.profile.description.rstrip()}'
+            ])
 
         def json(self) -> str:
             return models.utils.get_model_as_json(self.profile)
