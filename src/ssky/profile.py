@@ -13,8 +13,10 @@ class Profile:
         parser = subparsers.add_parser(self.name(), help='Show profile')
         parser.add_argument('name', type=str, help='Handle or DID to show')
         parser.add_argument('-D', '--delimiter', type=str, default=' ', metavar='STRING', help='Delimiter')
-        parser.add_argument('-I', '--id', action='store_true', help='Print ID (DID) only')
-        parser.add_argument('-L', '--long', action='store_true', help='Long output')
+        parser.set_defaults(format='')
+        format_group = parser.add_mutually_exclusive_group()
+        format_group.add_argument('-I', '--id', action='store_const', dest='format', const='id', help='Print IDs (URI::CID) only')
+        format_group.add_argument('-L', '--long', action='store_const', dest='format', const='long', help='Print in long format')
 
     def do(self, args) -> bool:
         try:
@@ -27,6 +29,6 @@ class Profile:
                 print(f'{e.__class__.__name__}', file=sys.stderr)
             return False
 
-        ActorList().append(profile).print(id_only=args.id, long_format=args.long, delimiter=args.delimiter)
+        ActorList().append(profile).print(format=args.format,delimiter=args.delimiter)
 
         return True

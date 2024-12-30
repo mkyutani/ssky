@@ -13,9 +13,11 @@ class User:
         parser = subparsers.add_parser(self.name(), help='Search users')
         parser.add_argument('q', type=str, metavar='QUERY', help='Query string')
         parser.add_argument('-D', '--delimiter', type=str, default=' ', metavar='STRING', help='Delimiter')
-        parser.add_argument('-I', '--id', action='store_true', help='Print IDs (URI::CID) only')
-        parser.add_argument('-L', '--long', action='store_true', help='Long output')
         parser.add_argument('-N', '--limit', type=int, default=100, metavar='NUM', help='Limit lines (<=100)')
+        parser.set_defaults(format='')
+        format_group = parser.add_mutually_exclusive_group()
+        format_group.add_argument('-I', '--id', action='store_const', dest='format', const='id', help='Print IDs (URI::CID) only')
+        format_group.add_argument('-L', '--long', action='store_const', dest='format', const='long', help='Print in long format')
 
     def do(self, args) -> bool:
         try:
@@ -39,6 +41,6 @@ class User:
             actor_list = ActorList()
             for actor in res.actors:
                 actor_list.append(actor)
-            actor_list.print(id_only=args.id, long_format=args.long, delimiter=args.delimiter)
+            actor_list.print(format=args.format,delimiter=args.delimiter)
 
         return True

@@ -40,6 +40,14 @@ class ActorList:
                 f'Avatar: {self.avatar}',
                 f'Created-At: {self.created_at}'])
 
+        def printable(self, format: str, delimiter: str = None) -> str:
+            if format == 'id':
+                return self.id()
+            elif format == 'long':
+                return self.long()
+            else:
+                return self.short(delimiter=delimiter)
+
     default_delimiter = ' '
 
     @classmethod
@@ -71,21 +79,12 @@ class ActorList:
 
         return self
 
-    def create_printable_list(self, id_only: bool = False, long_format: bool = False, delimiter: str = None) -> list[str]:
-        if id_only:
-            return [item.id() for item in self.items]
-        elif long_format:
-            return [item.long() for item in self.items]
-        else:
-            return [item.short(delimiter=delimiter) for item in self.items]
-
-    def print(self, id_only: bool = False, long_format: bool = False, delimiter: str = None) -> None:
-        printable_list = self.create_printable_list(id_only=id_only, long_format=long_format, delimiter=delimiter)
+    def print(self, format: str, delimiter: str = None) -> None:
         continued = False
-        for printable in printable_list:
-            if long_format:
+        for item in self.items:
+            if format == 'long':
                 if continued:
                     print('----------------')
                 else:
                     continued = True
-            print(printable)
+            print(item.printable(format, delimiter=delimiter))
