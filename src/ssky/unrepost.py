@@ -14,13 +14,25 @@ class Unrepost:
 
     def do(self, args) -> bool:
         if is_joined_uri_cid(args.param):
-            uri, _ = disjoin_uri_cid(args.param)
+            source_uri, source_cid = disjoin_uri_cid(args.param)
         else:
-            uri = args.param
+            source_uri = args.param
+            source_cid = None
 
         try:
             client = Config().client()
-            status = client.delete_repost(uri)
+            sources = client.get_posts([source_uri])
+            repost_uri = None
+            for source_post in sources.posts:
+                if source_post.uri == source_uri and (source_cid is None or source_post.cid == source_cid):
+                    repost_uri = source_post.viewer.repost
+                    break
+
+            if repost_uri is None:
+                print(f'Post not found', file=sys.stderr)
+                return False
+
+            status = client.unrepost(repost_uri)
             if status is False:
                 return False
         except atproto_client.exceptions.RequestErrorBase as e:
