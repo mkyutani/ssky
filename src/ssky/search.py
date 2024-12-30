@@ -13,7 +13,7 @@ class Search:
 
     def parse(self, subparsers) -> None:
         parser = subparsers.add_parser(self.name(), help='Search posts')
-        parser.add_argument('q', type=str, metavar='QUERY', help='Query string')
+        parser.add_argument('q', nargs='?', type=str, default='*', metavar='QUERY', help='Query string')
         parser.add_argument('-a', '--author', type=str, metavar='ACTOR', help='Author handle or DID')
         parser.add_argument('-s', '--since', type=str, metavar='TIMESTAMP', help='Since timestamp (ex. 2001-01-01T00:00:00Z, 20010101000000, 20010101)')
         parser.add_argument('-u', '--until', type=str, metavar='TIMESTAMP', help='Until timestamp (ex. 2099-12-31T23:59:59Z, 20991231235959, 20991231)')
@@ -25,6 +25,11 @@ class Search:
         formatting_group.add_argument('-T', '--text', action='store_true', help='Print text only')
 
     def do(self, args) -> bool:
+        if args.q:
+            q = args.q
+        else:
+            q = '*'
+
         if args.since:
             if re.match(r'^\d{14}$', args.since):
                 since = f'{args.since[:4]}-{args.since[4:6]}-{args.since[6:8]}T{args.since[8:10]}:{args.since[10:12]}:{args.since[10:12]}Z'
@@ -50,7 +55,7 @@ class Search:
                 models.AppBskyFeedSearchPosts.Params(
                     author=expand_actor(args.author),
                     limit=args.limit,
-                    q=args.q,
+                    q=q,
                     since=since,
                     until=until
                 )
