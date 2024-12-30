@@ -1,7 +1,7 @@
 import sys
 from atproto import models
 import atproto_client
-from ssky.actor_list import ActorList
+from ssky.profile_list import ProfileList
 from ssky.config import Config
 
 class User:
@@ -17,6 +17,7 @@ class User:
         parser.set_defaults(format='')
         format_group = parser.add_mutually_exclusive_group()
         format_group.add_argument('-I', '--id', action='store_const', dest='format', const='id', help='Print IDs (URI::CID) only')
+        format_group.add_argument('-J', '--json', action='store_const', dest='format', const='json', help='Print in JSON format')
         format_group.add_argument('-L', '--long', action='store_const', dest='format', const='long', help='Print in long format')
 
     def do(self, args) -> bool:
@@ -27,6 +28,11 @@ class User:
                     q=args.q
                 )
             )
+
+            actor_list = ProfileList()
+            for actor in res.actors:
+                actor_list.append(actor.did)
+            actor_list.print(format=args.format, delimiter=args.delimiter)
         except atproto_client.exceptions.RequestErrorBase as e:
             if e.response:
                 print(f'{e.response.status_code} {e.response.content.message}', file=sys.stderr)
@@ -36,11 +42,5 @@ class User:
         except atproto_client.exceptions.LoginRequiredError as e:
             print(str(e), file=sys.stderr)
             return False
-
-        if len(res.actors) > 0:
-            actor_list = ActorList()
-            for actor in res.actors:
-                actor_list.append(actor)
-            actor_list.print(format=args.format,delimiter=args.delimiter)
 
         return True
