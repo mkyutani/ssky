@@ -5,7 +5,7 @@ from ssky.util import summarize
 class ProfileList:
 
     class Item:
-        profile: models.AppBskyActorDefs.ProfileViewDetailed
+        profile: models.AppBskyActorDefs.ProfileViewDetailed = None
 
         def __init__(self, profile: models.AppBskyActorDefs.ProfileViewDetailed) -> None:
             self.profile = profile
