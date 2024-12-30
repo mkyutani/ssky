@@ -35,7 +35,7 @@ class Config:
                     session_string = persistent_config.get('session_string')
                     cls.at_login(session_string=session_string)
             else:
-                raise atproto_client.exceptions.LoginRequiredError('No credentials found. Please set SSKY_USER environment variable or run ssky login')
+                raise atproto_client.exceptions.LoginRequiredError('No credentials found. Please set SSKY_USER (HANDLE:PASSWORD) environment variable or run ssky login')
 
         if cls.session is None:
             raise atproto_client.exceptions.LoginRequiredError('Login first')
