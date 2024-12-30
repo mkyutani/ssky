@@ -1,54 +1,56 @@
 from datetime import datetime
 import os
 from atproto_client import models
-from ssky.util import join_uri_cid, summarize
+from ssky.util import disjoin_uri_cid, join_uri_cid, summarize
 
 class PostDataList:
 
     class Item:
-        uri: str = None
-        cid: str = None
-        author_did: str = None
-        author_handle: str = None
-        author_display_name: str = None
-        text: str = None
-        created_at: str = None
+        post: models.AppBskyFeedDefs.PostView = None
 
-        def __init__(self, uri: str, cid: str, author_did: str, author_handle: str, author_display_name: str, text: str, created_at: str) -> None:
-            self.uri = uri
-            self.cid = cid
-            self.author_did = author_did
-            self.author_handle = author_handle
-            self.author_display_name = author_display_name
-            self.text = text
-            self.created_at = created_at
+        def __init__(self, post: models.AppBskyFeedDefs.PostView, profile: models.AppBskyActorDefs.ProfileViewDetailed = None, uri_cid: str = None) -> None:
+            self.post = post
+            if profile:
+                self.post.author = models.AppBskyActorDefs.ProfileViewBasic(
+                    associated=profile.associated,
+                    avatar=profile.avatar,
+                    created_at=profile.created_at,
+                    did=profile.did,
+                    display_name=profile.display_name,
+                    handle=profile.handle,
+                    labels=profile.labels,
+                    viewer=profile.viewer
+                )
+            if uri_cid:
+                self.post.uri, self.post.cid = uri_cid.split('::')
 
         def id(self) -> str:
-            return join_uri_cid(self.uri, self.cid)
+            return join_uri_cid(self.post.uri, self.post.cid)
 
         def text_only(self) -> str:
-            return self.text.rstrip()
+            return self.post.record.text.rstrip()
 
         def short(self, delimiter: str = None) -> str:
             if delimiter is None:
                 delimiter = PostDataList.get_default_delimiter()
             uri_cid = self.id()
-            author_did = self.author_did
-            author_handle = self.author_handle
-            display_name_summary = summarize(self.author_display_name)
-            text_summary = summarize(self.text, length_max=40)
+            author_did = self.post.author.did
+            author_handle = self.post.author.handle
+            display_name_summary = summarize(self.post.author.display_name)
+            text_summary = summarize(self.post.record.text, length_max=40)
             return delimiter.join([uri_cid, author_did, author_handle, display_name_summary, text_summary])
 
         def long(self) -> str:
+            uri, cid = disjoin_uri_cid(self.id())
             return '\n'.join([
-                f'Record-URI: {self.uri}',
-                f'Record-CID: {self.cid}',
-                f'Author-DID: {self.author_did}',
-                f'Author-Handle: {self.author_handle}',
-                f'Author-Display-Name: {self.author_display_name}',
-                f'Created-At: {self.created_at}',
+                f'Author-DID: {self.post.author.did}',
+                f'Author-Display-Name: {self.post.author.display_name}',
+                f'Author-Handle: {self.post.author.handle}',
+                f'Created-At: {self.post.record.created_at}',
+                f'Record-CID: {cid}',
+                f'Record-URI: {uri}',
                 f'',
-                self.text.rstrip()])
+                self.post.record.text.rstrip()])
 
         def printable(self, format: str, delimiter: str = None) -> str:
             if format == 'id':
@@ -76,32 +78,10 @@ class PostDataList:
             self.default_delimiter = default_delimiter
 
     def __str__(self) -> str:
-        return str(self.items)
+        return str(self.uri_cids)
 
-    def append(self, post: models.base.ModelBase, author: models.AppBskyActorDefs.ProfileViewDetailed = None, uri: str = None, cid: str = None, author_did: str = None, author_handle: str = None, author_display_name: str = None, text: str = None, created_at: str = None) -> 'PostDataList':
-        if type(post) is models.AppBskyFeedPost.Record:
-            if author is not None:
-                author_did = author.did if author_did is None else author_did
-                author_handle = author.handle if author_handle is None else author_handle
-                author_display_name = author.display_name if author_display_name is None else author_display_name
-            text = post.text if text is None else text
-            created_at = post.created_at if created_at is None else created_at
-        elif type(post) is models.AppBskyFeedDefs.PostView:
-            uri = post.uri if uri is None else uri
-            cid = post.cid if cid is None else cid
-            if author is not None:
-                author_did = author.did if author_did is None else author_did
-                author_handle = author.handle if author_handle is None else author_handle
-                author_display_name = author.display_name if author_display_name is None else author_display_name
-            else:
-                author_did = post.author.did if author_did is None else author_did
-                author_handle = post.author.handle if author_handle is None else author_handle
-                author_display_name = post.author.display_name if author_display_name is None else author_display_name
-            text = post.record.text if text is None else text
-            created_at = post.record.created_at if created_at is None else created_at
-
-        self.items.append(self.Item(uri, cid, author_did, author_handle, author_display_name, text, created_at))
-
+    def append(self, post: models.base.ModelBase, profile: models.AppBskyActorDefs.ProfileViewDetailed = None, uri_cid: str = None) -> 'PostDataList':
+        self.items.append(self.Item(post, profile=profile, uri_cid=uri_cid))
         return self
 
     def print(self, format: str, output: str = None, delimiter: str = None) -> None:

@@ -310,13 +310,12 @@ class Post:
                 sleep(1)
                 post = self.get_post(res.uri)
 
+            PostDataList().append(post).print(format=args.format, output=args.output, delimiter=args.delimiter)
         except atproto_client.exceptions.RequestErrorBase as e:
             if e.response:
                 print(f'{e.response.status_code} {e.response.content.message}', file=sys.stderr)
             else:
                 print(f'{e.__class__.__name__}', file=sys.stderr)
             return False
-
-        PostDataList().append(post).print(format=args.format, output=args.output, delimiter=args.delimiter)
 
         return True

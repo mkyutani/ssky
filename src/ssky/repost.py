@@ -2,7 +2,7 @@ import sys
 import atproto_client
 from ssky.config import Config
 from ssky.post_data_list import PostDataList
-from ssky.util import disjoin_uri_cid, is_joined_uri_cid
+from ssky.util import disjoin_uri_cid, is_joined_uri_cid, join_uri_cid
 
 class Repost:
 
@@ -27,8 +27,6 @@ class Repost:
             source_uri = args.param
             source_cid = None
 
-        post_data_list = PostDataList()
-
         try:
             client = Config().client()
 
@@ -43,14 +41,14 @@ class Repost:
             if repost is None:
                 return False
 
-            post_data_list.append(source, uri=repost.uri, cid=repost.cid)
+            post_data_list = PostDataList()
+            post_data_list.append(source, uri_cid=join_uri_cid(repost.uri, repost.cid))
+            post_data_list.print(format=args.format, output=args.output, delimiter=args.delimiter)
         except atproto_client.exceptions.RequestErrorBase as e:
             if e.response:
                 print(f'{e.response.status_code} {e.response.content.message}', file=sys.stderr)
             else:
                 print(f'{e.__class__.__name__}', file=sys.stderr)
             return False
-
-        post_data_list.print(format=args.format, output=args.output, delimiter=args.delimiter)
 
         return True
