@@ -45,7 +45,7 @@ class Config:
     def persist(cls):
         if cls.session is not None:
             session_string = cls.session.client.export_session_string()
-            with open(os.path.expanduser('~/.ssky'), 'w') as f:
+            with open(cls.env_path, 'w') as f:
                 json.dump({
                     'session_string': session_string
                 }, f)
