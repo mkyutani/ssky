@@ -34,7 +34,9 @@ class Unrepost:
 
             status = client.unrepost(repost_uri)
             if status is False:
+                print('Failed to unrepost', file=sys.stderr)
                 return False
+            print('Unreposted successfully', file=sys.stderr)
         except atproto_client.exceptions.RequestErrorBase as e:
             if e.response:
                 print(f'{e.response.status_code} {e.response.content.message}', file=sys.stderr)

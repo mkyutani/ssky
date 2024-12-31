@@ -1,8 +1,7 @@
 import sys
 import atproto_client
 from ssky.config import Config
-from ssky.post_data_list import PostDataList
-from ssky.util import disjoin_uri_cid, is_joined_uri_cid, join_uri_cid
+from ssky.util import disjoin_uri_cid, is_joined_uri_cid
 
 class Repost:
 
@@ -38,6 +37,7 @@ class Repost:
                     break
 
             client.repost(source_uri, source_cid)
+            print('Reposted successfully', file=sys.stderr)
         except atproto_client.exceptions.RequestErrorBase as e:
             if e.response:
                 print(f'{e.response.status_code} {e.response.content.message}', file=sys.stderr)

@@ -18,6 +18,7 @@ class Login:
             if config is None:
                 return False
             config.persist()
+            print('Logged in successfully', file=sys.stderr)
         except atproto_client.exceptions.RequestErrorBase as e:
             if e.response:
                 print(f'{e.response.status_code} {e.response.content.message}', file=sys.stderr)

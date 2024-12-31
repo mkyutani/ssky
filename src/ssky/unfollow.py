@@ -20,9 +20,13 @@ class Unfollow:
             for follow in res.follows:
                 if follow.did == actor or follow.handle == actor:
                     if follow.viewer.following:
-                        res = Config().client().unfollow(follow.viewer.following)
+                        status = Config().client().unfollow(follow.viewer.following)
+                        if status is False:
+                            print('Failed to unfollow', file=sys.stderr)
+                            return False
+                        print('Unfollowed successfully', file=sys.stderr)
                     else:
-                        print(f'You are not following {actor}.', file=sys.stderr)
+                        print(f'You are not following {actor}', file=sys.stderr)
                     break
         except atproto_client.exceptions.RequestErrorBase as e:
             if e.response:
